@@ -1,0 +1,12 @@
+[Unit]
+Description=Winsun Mininas Web Server
+
+[Service]
+Type=forking
+Environment=LANG=en_US.UTF8
+ExecStart=/bin/bash -c "/usr/bin/python /srv/mini/aaa/manage.py runserver 0.0.0.0:80 --insecure &"
+KillMode=control-group
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

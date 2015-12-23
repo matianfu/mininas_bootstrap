@@ -1,0 +1,17 @@
+#!/bin/bash
+
+install_ssh_server () {
+
+    apt-get -y install openssh-server
+    echo "ssh server installed"
+
+    # enable root login
+    sed "s/^PermitRootLogin.*/PermitRootLogin yes/g" /etc/ssh/sshd_config
+    echo "ssh server root login enabled"
+}
+
+
+
+
+
+

@@ -1,0 +1,10 @@
+[Unit]
+Description=Mininas SSDP Broadcasting
+
+[Service]
+Type=forking
+ExecStart=/usr/local/sbin/ssdp
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
