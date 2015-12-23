@@ -1,0 +1,12 @@
+[Unit]
+Description=Thunder Offline Downloader
+
+[Service]
+Type=forking
+ExecStart=/opt/xware/portal
+User=thunder
+TimeoutSec=0
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
