@@ -1,0 +1,13 @@
+[Unit]
+Description=Winsun Mininas Disk Watcher
+
+[Service]
+Type=forking
+Environment=LANG=en_US.UTF8
+ExecStartPre=
+ExecStart=/bin/bash -c "/usr/bin/python /srv/mini/aaa/mini/watch.py"
+KillMode=control-group
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
