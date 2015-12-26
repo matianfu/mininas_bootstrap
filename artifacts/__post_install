@@ -75,10 +75,12 @@ prepare() {
 #
 config_apt () {
 
+    banner "configure apt sources"
+
     overlay_file "/etc/apt/sources.list"
     overlay_file "/etc/apt/apt.conf.d/70debconf"
     
-    highlight "updating apt..."
+    highlight "updating apt, please wait..."
     apt-get update &> /dev/null
     echo "done"
 }
@@ -88,15 +90,22 @@ config_apt () {
 #
 install_ssh () {
 
+    banner "install and configure ssh server"
+
+    highlight "install openssh-server, please wait..."
     apt-get -y install openssh-server
+    echo "done"
+
     overlay_file "/etc/ssh/sshd_config"
-    echo "ssh server installed and configured"
+    echo "done"
 }
 
 #
 # install ssdp and unit file
 #
 install_ssdp () {
+
+    banner "install ssdp service"
 
     local FILE="/usr/local/sbin/ssdp"
 
@@ -105,9 +114,13 @@ install_ssdp () {
 
     install_service ssdp
     enable_service ssdp
+
+    echo "done"
 }
 
 install_keys_and_leds () {
+
+    banner "install keys-and-leds service"
 
     local FILE="/usr/local/sbin/powerkey_chk.sh"    
 
@@ -116,9 +129,13 @@ install_keys_and_leds () {
 
     install_service keys-and-leds
     enable_service keys-and-leds
+
+    echo "done"
 }
 
 install_updated_starter () {
+
+    banner "install updated-starter service"
 
     local FILE="/usr/local/sbin/updated_starter.sh"
     
@@ -127,86 +144,120 @@ install_updated_starter () {
 
     install_service updated-starter
     enable_service updated-starter
+
+    echo "done"
 }
 
 create_users () {
 
+    banner "create users"
+
     # change UID_MAX to 2000", does NOT work
     # overlay_file "/etc/login.defs"
-    
+
+    highlight "create admin as uid 1000"    
     adduser --uid 1000 --gecos ",,," --disabled-password --disabled-login --no-create-home admin
     echo "admin:123456" | chpasswd
 
+    highlight "create smb_guest as uid 990"
     adduser --uid 990 --gecos ",,," --disabled-password --disabled-login --no-create-home smb_guest
+
+    highlight "create thunder as uid 989"
     adduser --uid 989 --gecos ",,," --disabled-password --disabled-login --no-create-home thunder
 
+    highlight "change /mnt/winsun to admin:admin 775"
+    mkdir -p /mnt/winsun
     chown admin:admin /mnt/winsun
+    chmod 775 /mnt/winsun
 
-    # add user to group
+    highlight "add thuner to admin group"
     adduser thunder admin
+
+    echo "done"
 }
 
 install_mysql () {
 
-    #install mysql
+    banner "install mysql"
+
     local MYSQL_PASSWORD="wenshang"
 
     echo "mysql-server-5.5 mysql-server/root_password password ${MYSQL_PASSWORD}" | debconf-set-selections
     echo "mysql-server-5.5 mysql-server/root_password_again password ${MYSQL_PASSWORD}" | debconf-set-selections
 
-    apt-get -y install mysql-server-5.5
+    highlight "installing mysql-server-5.5, please wait..."
+    apt-get -y install mysql-server-5.5 &> /dev/null
 
-    echo "mysql installed"
+    echo "done"
 }
 
 install_samba () {
 
-    apt-get -y install samba
+    banner "install samba"
+
+    highlight "installing samba, please wait..."
+    apt-get -y install samba &> /dev/null
 
     overlay_file "/etc/samba/smb.conf"
     overlay_file "/etc/mininas/data/configs/samba.json"
 
-    echo "please input 123456, twice"    
+    highlight "set samba password for admin, please input 123456, twice"    
     smbpasswd -a admin
+
+    echo "done"
 }
 
 install_proftpd () {
 
-    apt-get -y install proftpd-basic
+    banner "install proftpd"
+
+    highlight "installing proftpd, please wait..."
+    apt-get -y install proftpd-basic &> /dev/null
     
     overlay_file "/etc/proftpd/proftpd.conf"
     overlay_file "/etc/mininas/data/configs/proftpd.json"
+    
+    echo "done"
 }
 
 install_deb_packages () {
 
-    apt-get -y --force-yes install expect \
-        python python-django python-setuptools python-pip python-mysql.connector python-dev python-libtorrent libmysqlclient-dev python-mysqldb \
-        python-psutil python-imaging proftpd-basic curl libusb-1.0-0 libusb-1.0-0-dev
+    banner "install (dependent) debian packages"
 
-    # pick btrfs-tools from sid
+    highlight "installing packages, please wait..."
+    apt-get -y --force-yes install expect curl libusb-1.0-0 libusb-1.0-0-dev python python-dev \
+        python-django python-setuptools python-pip python-mysql.connector python-libtorrent libmysqlclient-dev python-mysqldb \
+        python-psutil python-imaging
+    echo "done"
+
+    # try bypassing python-dev package
+    # apt-get -y --force-yes install python-dev 
+
+    highlight "picking btrfs-tools from sid, please wait..."
     apt-get -y -t sid install btrfs-tools
-
-    echo "deb packages installed"
+    echo "done"
 }
 
 install_python_packages () {
 
-    highlight "install pythone packages"
+    banner "install python packages"
+    highlight "installing python packages, please wait..."
 
     local SETUPTOOLS_SOURCE_PATH="" # "http://mirrors.aliyun.com/pypi/simple/"
+    easy_install -i ${SETUPTOOLS_SOURCE_PATH} ntplib pexpect eyeD3 django_debug_toolbar apscheduler    
 
-    easy_install -i ${SETUPTOOLS_SOURCE_PATH} ntplib pexpect eyeD3 django_debug_toolbar apscheduler
-    
-    cd /overlay/install/psutil-3.2.1/
+    cd /overlay/install
+    rm -rf psutil-3.2.1
+
+    tar xf psutil-3.2.1.tar.gz
+    cd psutil-3.2.1/
     python setup.py install
-    cd -    
+    cd /
 
-    echo "python packages installed"
+    echo "done"
 }
 
 install_mininas_app () {
-
 
     banner "install mininas"    
 
@@ -214,7 +265,8 @@ install_mininas_app () {
     mkdir -p /srv/mini
     tar xzf /overlay/install/aaa.tar.gz -C /srv/mini
     echo "done"
-    
+
+    highlight "initialize database"    
     # systemctl start mysql does NOT work in chrooted environment
     /etc/init.d/mysql start
 
@@ -235,6 +287,8 @@ EOF
         insert into mini_ntpinfo (address,port,refreshtime) value ("202.112.10.36",123,3600);
 EOF
 
+    echo "done"
+
     highlight "install mininas service"   
     install_service mininas
     echo "done"
@@ -242,8 +296,13 @@ EOF
 
 install_thunder() {
 
-    # thunder need 
-    apt-get -y install lib32z1
+    banner "install thunder"
+
+    highlight "install prerequisite packages, please wait..."
+    apt-get -y install lib32z1 &> /dev/null
+    echo "done"
+
+    highlight "copy files and set ownership/permissions"
 
     mkdir -p /opt
     cp -r /overlay/opt/xware /opt
@@ -263,6 +322,8 @@ install_thunder() {
     chown thunder:thunder /opt/xware/vod_httpserver
     chmod 755 /opt/xware/vod_httpserver
 
+    echo "done"
+
     highlight "install thunder service"
     install_service thunder
     echo "done"
@@ -271,6 +332,7 @@ install_thunder() {
 install_dlna () {
     
     banner "install minidlna"
+
     highlight "install minidlna and avahi daemon, please wait..."
     apt-get -y install minidlna avahi-daemon &> /dev/null
     echo "done"
@@ -283,7 +345,7 @@ install_netatalk() {
 
 install_kernel() {
 
-    bannner "install kernel"
+    banner "install kernel"
 
     highlight "install kernel package, please wait..."
     dpkg -i /overlay/install/linux-image-4.3.3.001\+_001_amd64.deb &> /dev/null
@@ -298,15 +360,23 @@ install_kernel() {
 }
 
 do_cleanup() {
+
+    banner "clean up"
     
-    echo "clean apt cache"
+    highlight "clean apt cache"
     apt-get clean
+    echo "done"
 
-    echo "clean udev eth rules"
+    highlight "clean udev eth rules"
     rm -rf /etc/udev/rules.d/70-persistent-net.rules
+    echo "done"
 
-    echo "clean apt proxy"
+    highlight "clean apt proxy"
     rm -rf /etc/apt/apt.conf
+    echo "done"
+
+    # echo "clean manpages"
+    # rm -rf 
 }
 
 

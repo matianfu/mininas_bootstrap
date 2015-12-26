@@ -147,6 +147,10 @@ build_netboot_jessie () {
     # $FAKEROOT chmod a+x ${TMP_DIR}/initrd/bin/gzip
     # echo "done"
 
+    highlight "inject post_install scripts"
+    $FAKEROOT cp $ARTIFACT_DIR/post_install ${TMP_DIR}/initrd/
+    echo "done"
+
     # repack
     highlight "repack cpio archive"
     rm -f ${TMP_DIR}/initrd.cpio
@@ -159,7 +163,13 @@ build_netboot_jessie () {
     echo "repackaged netboot initrd (initrd.netboot.gz) is now available in ${STAGING_DIR}"
 }
 
-prepare_app_tarball () {
+build_mininas_tarball () {
+
+    # this is unsafe but suffice to our needs
+    if [ -z "$1" ]; then
+        echo "please provide svn revision."
+        return 1;
+    fi
 
     rm -rf ${STAGING_DIR}/svn
     mkdir -p ${STAGING_DIR}/svn
@@ -168,7 +178,7 @@ prepare_app_tarball () {
     local PYTHON_SVN=https://192.168.5.40/svn/PythonWebProject/branches/release
     local SVN_NAME=jiangwei
     local SVN_PASSWORD=123456
-    local PYTHON_SVN_VERSION=1194
+    local PYTHON_SVN_VERSION=$1
 
     cd ${STAGING_DIR}/svn
     # svn checkout https://192.168.5.40/svn/PythonWebProject/branches/release --username jiangwei --password 123456 --quiet --no-auth-cache -r 1194
@@ -207,17 +217,16 @@ generate_output () {
     cp -r ${BARCELONA_ROOT}/overlay/* ${OUTPUT_DIR}
     echo "done"
 
-    echo "untar psutils into overlay/install"
-    mkdir ${OUTPUT_DIR}/install
-    tar xzf ${CACHE_DIR}/psutil-3.2.1.tar.gz -C ${OUTPUT_DIR}/install
+    echo "cp psutils into overlay/install"
+    cp ${CACHE_DIR}/psutil-3.2.1.tar.gz ${OUTPUT}/install
     echo "done"
 
     echo "cp aaa.tar.gz"
     cp ${STAGING_DIR}/aaa.tar.gz ${OUTPUT_DIR}/install
     echo "done"
     
-    echo "cp post_install script"
-    cp ${ARTIFACT_DIR}/post_install ${OUTPUT_DIR}
+    echo "cp __post_install script"
+    cp ${ARTIFACT_DIR}/__post_install ${OUTPUT_DIR}
     echo "done"
 
     cp ${STAGING_DIR}/bzImage.usbflash ${OUTPUT_DIR}/usb_flash/boot/bzImage
