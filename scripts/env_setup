@@ -217,9 +217,9 @@ generate_output () {
     cp -r ${BARCELONA_ROOT}/overlay/* ${OUTPUT_DIR}
     echo "done"
 
-    echo "cp psutils into overlay/install"
-    cp ${CACHE_DIR}/psutil-3.2.1.tar.gz ${OUTPUT}/install
-    echo "done"
+    # echo "cp psutils into overlay/install"
+    # cp ${CACHE_DIR}/psutil-3.2.1.tar.gz ${OUTPUT}/install
+    # echo "done"
 
     echo "cp aaa.tar.gz"
     cp ${STAGING_DIR}/aaa.tar.gz ${OUTPUT_DIR}/install
