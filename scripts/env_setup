@@ -119,9 +119,9 @@ build_netboot_jessie () {
     $FAKEROOT cp ${ARTIFACT_DIR}/preseed.cfg $TMP_DIR/initrd
     echo "done"
 
-    highlight "inject kernel package"
-    $FAKEROOT cp $STAGING_DIR/linux-image-4.3.3.001+_001_amd64.deb $TMP_DIR/initrd
-    echo "done"
+#    highlight "inject kernel package"
+#    $FAKEROOT cp $STAGING_DIR/linux-image-4.3.3.001+_001_amd64.deb $TMP_DIR/initrd
+#    echo "done"
 
     highlight "inject statically linked busybox"
     $FAKEROOT cp $CACHE_DIR/busybox-x86_64 $TMP_DIR/initrd/bin/busybox-x86_64
@@ -159,6 +159,30 @@ build_netboot_jessie () {
     echo "repackaged netboot initrd (initrd.netboot.gz) is now available in ${STAGING_DIR}"
 }
 
+prepare_app_tarball () {
+
+    rm -rf ${STAGING_DIR}/svn
+    mkdir -p ${STAGING_DIR}/svn
+    cd ${STAGING_DIR}/svn
+
+    local PYTHON_SVN=https://192.168.5.40/svn/PythonWebProject/branches/release
+    local SVN_NAME=jiangwei
+    local SVN_PASSWORD=123456
+    local PYTHON_SVN_VERSION=1194
+
+    cd ${STAGING_DIR}/svn
+    # svn checkout https://192.168.5.40/svn/PythonWebProject/branches/release --username jiangwei --password 123456 --quiet --no-auth-cache -r 1194
+    svn checkout $PYTHON_SVN --username $SVN_NAME --password $SVN_PASSWORD --quiet --no-auth-cache -r $PYTHON_SVN_VERSION
+
+    cd release
+    tar czf aaa.tar.gz aaa
+
+    mv aaa.tar.gz ${STAGING_DIR}
+    cd ${BARCELONA_ROOT}
+
+    echo "aaa tarball is in staging folder"
+}
+
 generate_output () {
 
     highlight "prepare dirs"
@@ -166,7 +190,7 @@ generate_output () {
     mkdir -p ${OUTPUT_DIR}
     mkdir -p ${OUTPUT_DIR}/kbl
     mkdir -p ${OUTPUT_DIR}/boot
-    mkdir -p ${OUTPUT_DIR}/boot/deb
+    mkdir -p ${OUTPUT_DIR}/install
     mkdir -p ${OUTPUT_DIR}/cefdk
     mkdir -p ${OUTPUT_DIR}/usb_flash/boot
     echo "done"
@@ -177,7 +201,24 @@ generate_output () {
     cp ${STAGING_DIR}/initrd.netboot.gz ${OUTPUT_DIR}/boot/ramdisk
     cp ${ARTIFACT_DIR}/cmdline.usb ${OUTPUT_DIR}/boot/cmdline
     echo "$(git rev-parse --short HEAD)" > ${OUTPUT_DIR}/boot/git-short-hash
-    cp ${STAGING_DIR}/*.deb ${OUTPUT_DIR}/boot
+    cp ${STAGING_DIR}/*.deb ${OUTPUT_DIR}/install
+
+    echo "cp overlay tree"
+    cp -r ${BARCELONA_ROOT}/overlay/* ${OUTPUT_DIR}
+    echo "done"
+
+    echo "untar psutils into overlay/install"
+    mkdir ${OUTPUT_DIR}/install
+    tar xzf ${CACHE_DIR}/psutil-3.2.1.tar.gz -C ${OUTPUT_DIR}/install
+    echo "done"
+
+    echo "cp aaa.tar.gz"
+    cp ${STAGING_DIR}/aaa.tar.gz ${OUTPUT_DIR}/install
+    echo "done"
+    
+    echo "cp post_install script"
+    cp ${ARTIFACT_DIR}/post_install ${OUTPUT_DIR}
+    echo "done"
 
     cp ${STAGING_DIR}/bzImage.usbflash ${OUTPUT_DIR}/usb_flash/boot/bzImage
     echo "console=tty0 console=ttyS0,115200" > ${OUTPUT_DIR}/usb_flash/boot/cmdline

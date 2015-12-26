@@ -1,0 +1,7 @@
+deb http://mirrors.aliyun.com/debian/ jessie main contrib non-free
+deb http://mirrors.aliyun.com/debian-security/ jessie/updates main contrib non-free
+deb http://mirrors.aliyun.com/debian/ jessie-updates main contrib non-free
+deb http://mirrors.aliyun.com/debian/ jessie-backports main contrib non-free
+
+# sid (unstable) for btrfs-tools
+deb http://mirrors.aliyun.com/debian/ sid main contrib non-free

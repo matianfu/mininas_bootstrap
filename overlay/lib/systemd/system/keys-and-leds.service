@@ -1,0 +1,10 @@
+[Unit]
+Description=Powers and Keys Service
+
+[Service]
+Type=forking
+ExecStart=/usr/local/sbin/powerkey_chk.sh
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

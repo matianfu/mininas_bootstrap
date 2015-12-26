@@ -1,0 +1,10 @@
+[Unit]
+Description=System Update Daemon Starter Service
+
+[Service]
+Type=forking
+ExecStart=/usr/local/sbin/updated_starter.sh
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
