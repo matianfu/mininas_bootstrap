@@ -1,0 +1,15 @@
+#!/bin/sh
+
+set -e
+
+mkdir -p /target/overlay
+mount -t vfat /dev/sda1 /target/overlay
+
+. /lib/chroot-setup.sh
+chroot_setup
+chroot /target /overlay/post_install
+chroot_cleanup
+
+umount /target/overlay
+rmdir /target/overlay
+

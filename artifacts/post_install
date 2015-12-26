@@ -1,9 +1,5 @@
 #!/bin/bash
 
-# set -e
-mkdir -p /overlay
-mount -t vfat /dev/sda1 /overlay
-
 source /overlay/__post_install
 
 prepare

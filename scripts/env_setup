@@ -142,13 +142,9 @@ build_netboot_jessie () {
     $FAKEROOT rm -rf $TMP_DIR/initrd/lib/modules/3.16.0-4-amd64
     echo "done"
 
-    # highlight "inject gzip"
-    # $FAKEROOT cp -r ${ARTIFACT_DIR}/gzip ${TMP_DIR}/initrd/bin
-    # $FAKEROOT chmod a+x ${TMP_DIR}/initrd/bin/gzip
-    # echo "done"
-
-    highlight "inject post_install scripts"
-    $FAKEROOT cp $ARTIFACT_DIR/post_install ${TMP_DIR}/initrd/
+    highlight "inject autorun scripts"
+    $FAKEROOT cp $ARTIFACT_DIR/autorun ${TMP_DIR}/initrd/bin
+    $FAKEROOT chmod a+x ${TMP_DIR}/initrd/bin/autorun
     echo "done"
 
     # repack
@@ -217,16 +213,13 @@ generate_output () {
     cp -r ${BARCELONA_ROOT}/overlay/* ${OUTPUT_DIR}
     echo "done"
 
-    # echo "cp psutils into overlay/install"
-    # cp ${CACHE_DIR}/psutil-3.2.1.tar.gz ${OUTPUT}/install
-    # echo "done"
-
     echo "cp aaa.tar.gz"
     cp ${STAGING_DIR}/aaa.tar.gz ${OUTPUT_DIR}/install
     echo "done"
     
-    echo "cp __post_install script"
+    echo "cp post_install & __post_install script"
     cp ${ARTIFACT_DIR}/__post_install ${OUTPUT_DIR}
+    cp ${ARTIFACT_DIR}/post_install ${OUTPUT_DIR}
     echo "done"
 
     cp ${STAGING_DIR}/bzImage.usbflash ${OUTPUT_DIR}/usb_flash/boot/bzImage

@@ -93,7 +93,7 @@ install_ssh () {
     banner "install and configure ssh server"
 
     highlight "install openssh-server, please wait..."
-    apt-get -y install openssh-server
+    apt-get -y install openssh-server &> /dev/null
     echo "done"
 
     overlay_file "/etc/ssh/sshd_config"
@@ -230,13 +230,13 @@ install_deb_packages () {
     # python-dev python-pip removed
     # python-dev is required if easy_install-ing psutil package
     highlight "installing packages, please wait..."
-    apt-get -y --force-yes install expect curl libusb-1.0-0-dev libmysqlclient-dev python \
+    apt-get -y --force-yes install gdisk util-linux expect curl libusb-1.0-0-dev libmysqlclient-dev python \
         python-django python-setuptools python-mysql.connector python-libtorrent python-mysqldb python-imaging \
-        python-ntplib python-pexpect python-eyed3 python-django-debug-toolbar python-apscheduler python-psutil python-pyinotify
+        python-ntplib python-pexpect python-eyed3 python-django-debug-toolbar python-apscheduler python-psutil python-pyinotify &> /dev/null
     echo "done"
 
     highlight "picking btrfs-tools from sid, please wait..."
-    apt-get -y -t sid install btrfs-tools
+    apt-get -y -t sid install btrfs-tools &> /dev/null
     echo "done"
 }
 
