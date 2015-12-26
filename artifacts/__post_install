@@ -211,6 +211,8 @@ install_proftpd () {
 
     banner "install proftpd"
 
+    echo "proftpd-basic shared/proftpd/inetd_or_standalone select standalone" | debconf-set-selections
+
     highlight "installing proftpd, please wait..."
     apt-get -y install proftpd-basic &> /dev/null
     
@@ -224,14 +226,14 @@ install_deb_packages () {
 
     banner "install (dependent) debian packages"
 
+    # libusb-1.0-0 is already installed in base
+    # python-dev python-pip removed
+    # python-dev is required if easy_install-ing psutil package
     highlight "installing packages, please wait..."
-    apt-get -y --force-yes install expect curl libusb-1.0-0 libusb-1.0-0-dev python python-dev \
-        python-django python-setuptools python-pip python-mysql.connector python-libtorrent libmysqlclient-dev python-mysqldb \
-        python-psutil python-imaging
+    apt-get -y --force-yes install expect curl libusb-1.0-0-dev libmysqlclient-dev python \
+        python-django python-setuptools python-mysql.connector python-libtorrent python-mysqldb python-imaging \
+        python-ntplib python-pexpect python-eyed3 python-django-debug-toolbar python-apscheduler python-psutil python-pyinotify
     echo "done"
-
-    # try bypassing python-dev package
-    # apt-get -y --force-yes install python-dev 
 
     highlight "picking btrfs-tools from sid, please wait..."
     apt-get -y -t sid install btrfs-tools
@@ -241,20 +243,7 @@ install_deb_packages () {
 install_python_packages () {
 
     banner "install python packages"
-    highlight "installing python packages, please wait..."
-
-    local SETUPTOOLS_SOURCE_PATH="" # "http://mirrors.aliyun.com/pypi/simple/"
-    easy_install -i ${SETUPTOOLS_SOURCE_PATH} ntplib pexpect eyeD3 django_debug_toolbar apscheduler    
-
-    cd /overlay/install
-    rm -rf psutil-3.2.1
-
-    tar xf psutil-3.2.1.tar.gz
-    cd psutil-3.2.1/
-    python setup.py install
-    cd /
-
-    echo "done"
+    echo "do nothing"
 }
 
 install_mininas_app () {
