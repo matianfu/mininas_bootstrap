@@ -14,7 +14,7 @@ if [ ! -e "staging/linux-image-4.3.3.001+_001_amd64.deb" ]; then
 fi
 
 build_netboot_jessie
-build_mininas_tarball 1239
+build_mininas_tarball 1250
 generate_output
 
 
