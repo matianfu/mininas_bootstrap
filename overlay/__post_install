@@ -70,9 +70,11 @@ prepare() {
     overlay_file "/etc/mininas/data/configs/volume.json"
     echo "done"
 
-    highlight "deploy disk-watcher, automount-disk service (unit file)"
-    overlay_file "/lib/systemd/system/automount-disk.service"
-    overlay_file "/lib/systemd/system/disk-watcher.service"
+    highlight "deploy disk-watcher, automount-disk service"
+    install_service disk-watcher
+    enable_service disk-watcher
+    install_service automount-disk 
+    enable_service automount-disk
     echo "done"
    
 }
@@ -195,6 +197,8 @@ install_mysql () {
     highlight "installing mysql-server-5.5, please wait..."
     apt-get -y install mysql-server-5.5 &> /dev/null
 
+    # /etc/init.d/mysql stop
+
     echo "done"
 }
 
@@ -303,6 +307,7 @@ EOF
 
     highlight "install mininas service"   
     install_service mininas
+    enable_service mininas
     echo "done"
 }
 
