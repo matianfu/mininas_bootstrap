@@ -1,0 +1,11 @@
+[Unit]
+Description=Winsun Mininas Auto Mount Disk
+
+[Service]
+Type=oneshot
+Environment=LANG=en_US.UTF8
+ExecStartPre=
+ExecStart=/bin/bash -c "/usr/bin/python /srv/mini/aaa/mini/automountdisk.py"
+
+[Install]
+WantedBy=multi-user.target
