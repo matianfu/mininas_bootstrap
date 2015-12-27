@@ -173,7 +173,7 @@ create_users () {
     highlight "add thuner to admin group"
     adduser thunder admin
 
-    echo "done"
+    # echo "done"
 }
 
 install_mysql () {
@@ -201,8 +201,10 @@ install_samba () {
     overlay_file "/etc/samba/smb.conf"
     overlay_file "/etc/mininas/data/configs/samba.json"
 
-    highlight "set samba password for admin, please input 123456, twice"    
-    smbpasswd -a admin
+    # highlight "set samba password for admin, please input 123456, twice"    
+    # smbpasswd -a admin
+    highlight "set samba password for admin"
+    (echo "123456"; echo "123456") | smbpasswd -a admin
 
     echo "done"
 }
@@ -276,6 +278,8 @@ EOF
         insert into mini_ntpinfo (address,port,refreshtime) value ("202.112.10.36",123,3600);
 EOF
 
+    # stop mysql
+    /etc/init.d/mysql stop
     echo "done"
 
     highlight "install mininas service"   

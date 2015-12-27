@@ -1,6 +1,6 @@
 #!/bin/bash
 
-
+# set -e
 
 if [ ! -e "scripts/env_setup" ]; then
     echo "please run this script in winsun folder"
@@ -14,7 +14,7 @@ if [ ! -e "staging/linux-image-4.3.3.001+_001_amd64.deb" ]; then
 fi
 
 build_netboot_jessie
-build_mininas_tarball
+build_mininas_tarball 1235
 generate_output
 
 
