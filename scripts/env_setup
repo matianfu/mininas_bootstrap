@@ -217,10 +217,10 @@ generate_output () {
     cp ${STAGING_DIR}/aaa.tar.gz ${OUTPUT_DIR}/install
     echo "done"
     
-    echo "cp post_install & __post_install script"
-    cp ${ARTIFACT_DIR}/__post_install ${OUTPUT_DIR}
-    cp ${ARTIFACT_DIR}/post_install ${OUTPUT_DIR}
-    echo "done"
+    # echo "cp post_install & __post_install script"
+    # cp ${ARTIFACT_DIR}/__post_install ${OUTPUT_DIR}
+    # cp ${ARTIFACT_DIR}/post_install ${OUTPUT_DIR}
+    # echo "done"
 
     cp ${STAGING_DIR}/bzImage.usbflash ${OUTPUT_DIR}/usb_flash/boot/bzImage
     echo "console=tty0 console=ttyS0,115200" > ${OUTPUT_DIR}/usb_flash/boot/cmdline
