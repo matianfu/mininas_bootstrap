@@ -262,11 +262,11 @@ install_deb_packages () {
     # libusb-1.0-0 is already installed in base
     # python-dev python-pip removed
     # python-dev is required if easy_install-ing psutil package
-    # python-eyed3
+    # python-eyed3, python-apscheduler moved to easy_install
     highlight "installing packages, please wait..."
     apt-get -y --force-yes install gdisk util-linux expect curl libusb-1.0-0-dev libmysqlclient-dev python \
         python-django python-setuptools python-mysql.connector python-libtorrent python-mysqldb python-imaging \
-        python-ntplib python-pexpect python-django-debug-toolbar python-apscheduler python-psutil python-pyinotify &> /dev/null
+        python-ntplib python-pexpect python-django-debug-toolbar python-psutil python-pyinotify &> /dev/null
     echo "done"
 
     highlight "picking btrfs-tools from sid, please wait..."
