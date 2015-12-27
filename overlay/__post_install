@@ -59,7 +59,7 @@ prepare() {
 
     ln -s /mininas/ping /etc/mininas/data
     mkdir -p /etc/mininas/data/configs
-    mkdir -p /etc/mininas/data/mysql
+    # mkdir -p /etc/mininas/data/mysql
 
     # mkdir here and change owner/group in create users
     mkdir -p /mnt/winsun
@@ -196,9 +196,19 @@ install_mysql () {
 
     highlight "installing mysql-server-5.5, please wait..."
     apt-get -y install mysql-server-5.5 &> /dev/null
+    echo "done"
 
-    # /etc/init.d/mysql stop
+    # /etc/init.d/mysql status
+    # MySQL is stopped
 
+    highlight "move mysql database location and update my.cnf"
+    mkdir -p /etc/mininas/data/mysql
+
+    # this is important!
+    chown mysql:mysql /etc/mininas/data/mysql
+
+    mv /var/lib/mysql/* /etc/mininas/data/mysql
+    overlay_file /etc/mysql/my.cnf
     echo "done"
 }
 
@@ -267,7 +277,13 @@ install_deb_packages () {
 install_python_packages () {
 
     banner "install python packages"
+
+    highlight "install eyeD3"
     easy_install eyeD3
+    echo "done"
+
+    highlight "install apscheduler"
+    easy_install apscheduler
     echo "done"
 }
 
