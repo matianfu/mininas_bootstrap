@@ -45,12 +45,11 @@ enable_service () {
 #
 prepare() {
 
-    banner "prepare partitions, folders, and mount point"
+    banner "prepare" 
+    highlight "prepare partitions, folders, and mount point"
 
-    mkdir /mininas
-
-    mount -t ext4 /dev/mmcblk0p2 /mininas
-
+    # mkdir /mininas
+    # mount -t ext4 /dev/mmcblk0p2 /mininas
     mkdir -p /mininas/boot
     mkdir -p /mininas/ping
     mkdir -p /mininas/pong
@@ -62,12 +61,20 @@ prepare() {
     mkdir -p /etc/mininas/data/configs
     mkdir -p /etc/mininas/data/mysql
 
-    overlay_file "/etc/fstab"
-
     # mkdir here and change owner/group in create users
     mkdir -p /mnt/winsun
+    echo "done"
 
-    echo "p2 is mounted and ready"
+    highlight "deploy fstab, volume.json"
+    overlay_file "/etc/fstab"
+    overlay_file "/etc/mininas/data/configs/volume.json"
+    echo "done"
+
+    highlight "deploy disk-watcher, automount-disk service (unit file)"
+    overlay_file "/lib/systemd/system/automount-disk.service"
+    overlay_file "/lib/systemd/system/disk-watcher.service"
+    echo "done"
+   
 }
 
 #
@@ -197,9 +204,15 @@ install_samba () {
 
     highlight "installing samba, please wait..."
     apt-get -y install samba &> /dev/null
-
+    echo "done"
+    
+    highlight "put conf, json, and template files"
     overlay_file "/etc/samba/smb.conf"
     overlay_file "/etc/mininas/data/configs/samba.json"
+    mkdir -p /etc/mininas/templates/samba
+    overlay_file "/etc/mininas/templates/samba/global"
+    overlay_file "/etc/mininas/templates/samba/share"
+    echo "done"
 
     # highlight "set samba password for admin, please input 123456, twice"    
     # smbpasswd -a admin
@@ -217,10 +230,14 @@ install_proftpd () {
 
     highlight "installing proftpd, please wait..."
     apt-get -y install proftpd-basic &> /dev/null
+    echo "done"
     
+    highlight "overlay conf, json, and template files"
     overlay_file "/etc/proftpd/proftpd.conf"
     overlay_file "/etc/mininas/data/configs/proftpd.json"
-    
+    mkdir -p "/etc/mininas/templates/proftpd"
+    overlay_file "/etc/mininas/templates/proftpd/default"
+    overlay_file "/etc/mininas/templates/proftpd/expanded"
     echo "done"
 }
 
@@ -329,10 +346,18 @@ install_dlna () {
     highlight "install minidlna and avahi daemon, please wait..."
     apt-get -y install minidlna avahi-daemon &> /dev/null
     echo "done"
+
+    highlight "install conf, json, and template files"
+    overlay_file "/etc/minidlna.conf"
+    overlay_file "/etc/mininas/data/configs/minidlna.json"
+
+    mkdir -p "/etc/mininas/templates/minidlna"
+    overlay_file "/etc/mininas/templates/minidlna/default"
 }
 
 install_netatalk() {
-    
+
+    # not implemented yet   
     apt-get -y -t sid install netatalk
 }
 
