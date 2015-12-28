@@ -68,4 +68,4 @@ AllowRetrieveRestart on
 AllowStoreRestart on
 DeleteAbortedStores off
 TimesGMT off
-DefaultRoot    %%path%%
+DefaultRoot    %%FTP_DEFAULT_ROOT%%

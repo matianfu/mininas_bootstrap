@@ -2,7 +2,7 @@
 	AllowUser ftp
 	DenyAll
 </Limit>
-<Anonymous %%path%%>
+<Anonymous %%FTP_ANONYMOUS_PATH%%>
 	User	ftp
 	Group	nogroup
 	UserAlias	anonymous ftp
