@@ -1,5 +1,4 @@
 {
-	"FTP_WELCOME_MSG":"Welcome",
 	"FTP_TIMEOUT_IDLE":"600",
 	"FTP_PORT":"21",
 	"FTP_MAX_CLIENTS":"3",

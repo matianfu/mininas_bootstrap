@@ -5,5 +5,3 @@
    guest ok = Yes
    create mask = 0777
    directory mask = 0777
-   directory security mask = 0777
-   security mask = 0777
