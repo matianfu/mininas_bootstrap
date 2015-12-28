@@ -1,11 +1,11 @@
 [Unit]
-Description=Winsun Mininas Auto Mount Disk
+Description=Winsun Mininas AutoMount Disk
 
 [Service]
 Type=oneshot
 Environment=LANG=en_US.UTF8
 ExecStartPre=
-ExecStart=/bin/bash -c "/usr/bin/python /srv/mini/aaa/mini/automountdisk.py"
+ExecStart=/bin/bash -c "mkdir -p /run/mininas/; echo '0' > /run/mininas/tmpdiskinfo; /usr/bin/python /srv/mini/aaa/mini/automountdisk.py"
 
 [Install]
 WantedBy=multi-user.target

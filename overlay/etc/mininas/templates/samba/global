@@ -1,7 +1,7 @@
 [global]
-   workgroup = %%workgroup%%
-   netbios name = %%netbios_name%%
-   server string = %%server_string%%
+   workgroup = %%SMB_WORKGROUP%%
+   netbios name = %%SMB_NETBIOS_NAME%%
+   server string = %h server (Samba, Ubuntu)
    dns proxy = no
    log file = /var/log/samba/log.%m
    max log size = 1000
@@ -15,6 +15,6 @@
    passwd chat = *Enter\snew\s*\spassword:* %n\n *Retype\snew\s*\spassword:* %n\n *password\supdated\ssuccessfully* .
    pam password change = yes
    public = yes
-   map to guest = %%map_to_guest%%
-   security = %%security%%
+   map to guest = %%SMB_MAP_TO_GUEST%%
+   security = %%SMB_SECURITY%%
    guest account = guest

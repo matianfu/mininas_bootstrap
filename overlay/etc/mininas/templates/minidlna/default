@@ -1,8 +1,8 @@
-media_dir=%%path%%
+media_dir=%%DLNA_PATH%%
 
 port=8200
 
-friendly_name=%%name%%
+friendly_name=%%DLNA_NAME%%
 
 serial=681019810597110
 

@@ -1,6 +1,6 @@
-[%%share%%]
-   comment = %%comment%%
-   path = %%path%%
+[%%SMB_FOLDER_NAME%%]
+   comment = %%SMB_COMMENT%%
+   path = %%SMB_PATH%%
    read only = No
    guest ok = Yes
    create mask = 0777

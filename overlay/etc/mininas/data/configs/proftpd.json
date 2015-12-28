@@ -1,2 +1,4 @@
 {
+	"FTP_DEFAULT_ROOT":"/mnt/winsun/",
+	"FTP_ANONYMOUS_PATH":"/mnt/winsun/"
 }
