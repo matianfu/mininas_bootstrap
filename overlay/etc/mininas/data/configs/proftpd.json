@@ -1,4 +1,9 @@
 {
+	"FTP_TIMEOUT_IDLE":"600",
+	"FTP_PORT":"21",
+	"FTP_MAX_CLIENTS":"3",
+	"FTP_MAX_HOST":"5",
+	"FTP_MAX_LOGIN":"5",
 	"FTP_DEFAULT_ROOT":"/mnt/winsun/",
 	"FTP_ANONYMOUS_PATH":"/mnt/winsun/"
 }

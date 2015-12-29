@@ -12,7 +12,7 @@ ShowSymlinks			off
 
 TimeoutNoTransfer		600
 TimeoutStalled			600
-TimeoutIdle    600
+TimeoutIdle    %%FTP_TIMEOUT_IDLE%%
 
 DisplayLogin    welcome.msg
 DisplayChdir               	.message true
@@ -20,7 +20,7 @@ ListOptions                	"-l"
 
 DenyFilter			\*.*/
 
-Port    21
+Port    %%FTP_PORT%%
 
 <IfModule mod_dynmasq.c>
 </IfModule>
@@ -50,7 +50,7 @@ DelayEngine on
 
 <IfModule mod_ctrls.c>
 ControlsEngine        off
-MaxClients    3
+MaxClients    %%FTP_MAX_CLIENTS%%
 ControlsLog           /var/log/proftpd/controls.log
 ControlsInterval      5
 ControlsSocket        /var/run/proftpd/proftpd.sock
@@ -61,8 +61,8 @@ AdminControlsEngine off
 </IfModule>
 
 Include /etc/proftpd/conf.d/
-MaxConnectionsPerHost    5
-MaxLoginAttempts    5
+MaxConnectionsPerHost    %%FTP_MAX_HOST%%
+MaxLoginAttempts    %%FTP_MAX_LOGIN%%
 DefaultTransferMode ascii
 AllowRetrieveRestart on
 AllowStoreRestart on

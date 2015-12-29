@@ -1,0 +1,11 @@
+[%%SMB_FOLDER_NAME%%]
+   comment = %%SMB_COMMENT%%
+   path = %%SMB_FOLDER_PATH%%
+   read only = No
+   guest ok = No
+   available = %%SMB_FOLDER_AVAIL%%
+   force user = admin
+   force group = smbshare000
+   valid users = +smbshare%%SID%% +smbshare%%SID%%ro
+   write list = +smbshare%%SID%%
+   invalid users = guest

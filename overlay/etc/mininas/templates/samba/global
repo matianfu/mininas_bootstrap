@@ -7,14 +7,21 @@
    max log size = 1000
    syslog = 0
    panic action = /usr/share/samba/panic-action %d
-   comment = hello
+   server role = standalone server
    passdb backend = tdbsam
    obey pam restrictions = yes
    unix password sync = yes
    passwd program = /usr/bin/passwd %u
    passwd chat = *Enter\snew\s*\spassword:* %n\n *Retype\snew\s*\spassword:* %n\n *password\supdated\ssuccessfully* .
    pam password change = yes
-   public = yes
-   map to guest = %%SMB_MAP_TO_GUEST%%
-   security = %%SMB_SECURITY%%
-   guest account = guest
+   map to guest = Bad User
+   security = user
+   guest account = smb_guest
+
+[homes]
+   comment = Home Directory
+   browseable = no
+   read only = no
+   create mask = 0775
+   directory mask = 0775
+   valid users = %%SMB_HOME_USERS%%

@@ -1,8 +1,8 @@
 {
 	"SMB_WORKGROUP":"WORKGROUP",
-       	"SMB_NETBIOS_NAME":"WINSUN MININAS",
-       	"SMB_MAP_TO_USER":"never",
-       	"SMB_SECURITY":"user",
+	"SMB_NETBIOS_NAME":"WINSUN MININAS",
+	"SMB_MAP_TO_USER":"never",
+	"SMB_SECURITY":"user",
 
 	"share":
 	[
