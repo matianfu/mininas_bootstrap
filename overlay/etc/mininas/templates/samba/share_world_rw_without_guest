@@ -6,6 +6,6 @@
    available = %%SMB_FOLDER_AVAIL%%
    force user = admin
    force group = smbshare000
-   valid users = +smbshare000 +smbshare000ro
-   write list = +smbshare000
+   valid users = +smbshare%%SID%% +smbshare%%SID%%ro
+   write list = +smbshare%%SID%%
    invalid users = guest
