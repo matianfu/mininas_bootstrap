@@ -7,6 +7,12 @@ if [ ! -e "scripts/env_setup" ]; then
     exit 1
 fi
 
+# this is unsafe but suffice to our needs
+if [ -z "$1" ]; then 
+    echo "please provide mininas svn revision."
+    return 1;
+fi
+
 source scripts/env_setup
 
 if [ ! -e "staging/linux-image-4.3.3.001+_001_amd64.deb" ]; then
@@ -14,7 +20,7 @@ if [ ! -e "staging/linux-image-4.3.3.001+_001_amd64.deb" ]; then
 fi
 
 build_netboot_jessie
-build_mininas_tarball 1245
+build_mininas_tarball $1
 generate_output
 
 

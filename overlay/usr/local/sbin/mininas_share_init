@@ -1,0 +1,53 @@
+#!/bin/bash
+#
+#
+
+if [ "$#" -ne 1 ]; then
+    echo "usage: mininas_create_share_folders rootpath"
+    exit 1
+fi
+
+if [ ! -d "$1" ]; then
+    echo "path does not exist"
+    exit 2
+fi
+
+id admin
+if [ "$?" -ne 0 ]; then
+    echo "please create admin user account before running this script"
+    exit 3
+fi
+
+ROOTPATH=$1
+
+SHAREGROUP=
+SHAREGROUPRO=
+SHAREPATH=
+
+for num in $(seq -w 0 099); do
+
+    SHAREGROUP=smbshare${num}
+    SHAREGROUPRO=smbshare${num}ro
+    SHAREPATH=${ROOTPATH}/smbshare${num}
+
+    delgroup $SHAREGROUP
+    delgroup $SHAREGROUPRO
+
+    addgroup --gid 10${num} $SHAREGROUP
+    adduser admin $SHAREGROUP
+    addgroup --gid 11${num} $SHAREGROUPRO
+    adduser admin $SHAREGROUPRO
+
+
+    rm -rf $SHAREPATH
+    mkdir $SHAREPATH
+
+    chown admin:$SHAREGROUP $SHAREPATH
+
+    # setgid, setuid bit on directory not implemented in linux
+    chmod 2775 $SHAREPATH
+done
+
+cat /etc/group | grep -e ^smbshare
+ls -sail $ROOTPATH
+

@@ -1,0 +1,65 @@
+#!/bin/bash
+
+#
+# mininas_adduser username password (userid) # userid is optional 
+#
+# exit code
+# 1 argumenst missing
+# 2 internal failure, dont retry
+# 10 user name exists
+# 11 group name exists
+# 12 user id exists (only if userid argument provided)
+# 13 group id exists (only if userid argument provided)
+
+if [ "$#" -ne 2 ] && [ "$#" -ne 3 ]; then
+    echo "usage: mininas_create_user username password (userid) # userid is optional"
+    exit 1                      # missing argument
+fi
+
+. ${MININAS_PREFIX}/usr/local/sbin/mininas_common
+
+USERNAME=$1
+PASSWORD=$2
+USERID=$3
+UIDOPTION=
+
+if [ ! -z "$USERID" ]; then
+    UIDOPTION=" --uid $USERID "
+fi
+
+getent passwd $USERNAME
+exit_ne 2 10 "user name exists"
+
+getent group $USERNAME
+exit_ne 2 11 "group name exists"
+
+if [ ! -z "$USERID" ]; then
+    getent passwd $USERID
+    exit_ne 2 12 "user id exists"
+
+    getent group $USERID
+    exit_ne 2 13 "group id exists"
+fi
+
+adduser $UIDOPTION --gecos ",,," --disabled-password --disabled-login --no-create-home $USERNAME
+exit_ne 0 2 "internal failure"
+
+echo "${USERNAME}:${PASSWORD}" | chpasswd
+exit_ne 0 2 "internal failure" deluser $USERNAME
+
+# add to users group
+adduser $USERNAME users
+
+# add user to samba database
+(echo "$PASSWORD"; echo "$PASSWORD") | smbpasswd -a $USERNAME
+exit_ne 0 20 "fail to add user to samba database" deluser $USERNAME
+
+# output info
+id $USERNAME
+pdbedit -L | sort
+
+
+
+
+
+

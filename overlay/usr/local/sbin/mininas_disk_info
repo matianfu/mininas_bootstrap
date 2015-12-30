@@ -1,0 +1,91 @@
+#!/bin/bash
+
+if [ ! -d "/sys" ]; then
+    echo "sysfs not mounted"
+    exit 1
+fi
+
+BLOCK_DEVICES=$(ls /sys/block | grep ^sd[a-z]$)
+
+
+FILE=/run/mininas/atadisk.json
+
+rm -rf $FILE
+
+printf "{\n  " >> $FILE
+
+ARRAYOPENING=
+for blkdev in $BLOCK_DEVICES; do
+
+    DEVFILE=/dev/$blkdev
+    UDEVRESULT=$(udevadm info $DEVFILE | grep "^E: " | sed "s/^E: //")
+
+    declare -A ARRAY
+
+    IFS=$'\n'
+    for LINE in $UDEVRESULT; do
+
+        UPPER="${LINE%%=*}"
+        KEY="$(echo $UPPER | tr '[:upper:]' '[:lower:]')"
+        VALUE="${LINE##*=}"
+        
+        ARRAY["$KEY"]="$VALUE"
+    done
+   
+    # we are interested only on atadisk 
+    if [ "${ARRAY[id_bus]}" == "ata" ] && [ "${ARRAY[devtype]}" == "disk" ]; then
+
+        if [ -z "$ARRAYOPENING" ]; then
+            printf "\"atadisks\" : [\n    " >> $FILE
+            ARRAYOPENING="yes"
+        else 
+            printf ",\n    " >> $FILE
+        fi 
+    
+        OPENING=
+
+        #
+        # bash associative array does not sort
+        #
+        # for i in ${!ARRAY[@]}
+        # do
+        #    if [ -z "$OPENING" ]; then
+        #        printf "{\n      " >> "$FILE"
+        #        OPENING="yes"
+        #    else 
+        #        printf ",\n      " >> "$FILE"
+        #    fi
+        #    printf "\"%s\" : \"%s\"" "$i" "${ARRAY[$i]}" >> "$FILE"
+        # done
+        # printf "\n    }" >> $FILE
+        
+        for LINE in $UDEVRESULT; do
+            
+            UPPER="${LINE%%=*}"
+            KEY="$(echo $UPPER | tr '[:upper:]' '[:lower:]')"
+            VALUE="${LINE##*=}"    
+            
+            # this entry has invalid string for json
+            if [ "$KEY" == "id_model_enc" ]; then
+                 continue
+            fi
+ 
+            if [ -z "$OPENING" ]; then
+                printf "{\n      " >> $FILE
+                OPENING="yes"
+            else
+                printf ",\n      " >> $FILE
+                
+            fi     
+            printf "\"%s\" : \"%s\"" "$KEY" "$VALUE" >> $FILE
+        done
+        printf "\n    }" >> $FILE
+    fi
+
+    unset -v ARRAY
+done
+printf "\n  ]" >> $FILE
+
+printf "\n}\n" >> $FILE
+
+

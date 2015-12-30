@@ -1,0 +1,119 @@
+#!/bin/bash
+
+SETMODE=
+NUMBER=
+MEMBERS=
+READONLY=
+
+while getopts "n:rs:" opt; do
+
+    case $opt in
+        s)
+            SETMODE="yes"
+            MEMBERS="$OPTARG"
+            ;; 
+        r)
+            READONLY="yes"
+            ;;
+        n)
+            NUMBER="$OPTARG"
+            ;;
+       \?)
+            echo "unrecognized option -$OPTARG"
+            exit 1
+            ;;
+    esac
+done
+
+#
+# check empty number, aka ""
+#
+if [ -z "$NUMBER" ]; then
+    echo "-n share group number must be provided"
+    exit 1
+fi
+
+#
+# validate number
+#
+NUMVALID=
+for num in $(seq 0 99); do
+    if [ "$NUMBER" == "$num" ]; then
+        NUMVALID="yes"
+        break
+    fi
+done
+
+if [ -z "$NUMVALID" ]; then
+    echo "-n $NUMBER is not a valid number (integer 0..99)"
+    exit 1
+fi
+
+#
+# build group name string
+#
+GROUPNUM=$(printf "%03d" $NUMBER)
+GROUPNAME=
+
+if [ -z "$READONLY" ]; then
+    GROUPNAME=smbshare${GROUPNUM}
+else
+    GROUPNAME=smbshare${GROUPNUM}ro
+fi
+
+#
+# check mode, get or set
+#
+if [ ! -z "$SETMODE" ]; then
+
+    # SET mode
+    #
+    # validate new user
+    #
+    for newuser in $MEMBERS; do
+        id $newuser &> /dev/null
+        if [ "$?" -ne 0 ]; then
+            echo "$newuser is NOT valid user, reported by id command."
+            exit 1
+        fi
+    done
+
+    # retrieve existing members
+    OLD_MEMBERS=$(members $GROUPNAME)
+
+    # remove user in old_members but no new one
+    for olduser in $OLD_MEMBERS ; do
+
+        if [ "$olduser" == "admin" ]; then
+            continue
+        fi
+
+        FOUND=""
+        for newuser in $MEMBERS ; do
+            if [ "$olduser" == "$newuser" ]; then
+                FOUND="yes"
+                break
+            fi
+        done
+
+        # if not found, remove olduser from group
+        if [ -z "$FOUND" ]; then
+            echo "deluser $olduser $GROUPNAME"
+            deluser $olduser $GROUPNAME
+        fi
+    done
+
+    for newuser in $MEMBERS ; do
+        adduser $newuser $GROUPNAME
+    done
+
+else    
+    
+    # GET mode (default)
+    members $GROUPNAME
+fi
+
+exit 0
+
+
+

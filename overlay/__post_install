@@ -40,6 +40,14 @@ enable_service () {
     systemctl enable $1 
 }
 
+create_smbshare_groups () {
+
+    for ID in $(seq -w 0 99); do
+        groupadd -g 100${ID} smbshare0${ID}
+        groupadd -g 110${ID} smbshare0${ID}ro
+    done
+}
+
 #
 # prepare partitions and folders
 #
@@ -48,8 +56,7 @@ prepare() {
     banner "prepare" 
     highlight "prepare partitions, folders, and mount point"
 
-    # mkdir /mininas
-    # mount -t ext4 /dev/mmcblk0p2 /mininas
+    # 
     mkdir -p /mininas/boot
     mkdir -p /mininas/ping
     mkdir -p /mininas/pong
@@ -59,10 +66,9 @@ prepare() {
 
     ln -s /mininas/ping /etc/mininas/data
     mkdir -p /etc/mininas/data/configs
-    # mkdir -p /etc/mininas/data/mysql
 
-    # mkdir here and change owner/group in create users
-    mkdir -p /mnt/winsun
+    # dont do this now
+    # mkdir -p /etc/mininas/data/mysql
     echo "done"
 
     highlight "deploy fstab, volume.json"
@@ -157,6 +163,16 @@ install_updated_starter () {
     echo "done"
 }
 
+#
+#  $1 USERNAME
+#  $2 PASSWORD
+#  $3 USERID (optional)
+#
+mininas_add_normal_user () {
+
+    
+}
+
 create_users () {
 
     banner "create users"
@@ -168,11 +184,11 @@ create_users () {
     adduser --uid 1000 --gecos ",,," --disabled-password --disabled-login --no-create-home admin
     echo "admin:123456" | chpasswd
 
-    highlight "create smb_guest as uid 990"
-    adduser --uid 990 --gecos ",,," --disabled-password --disabled-login --no-create-home smb_guest
+    # highlight "create smb_guest as uid 990"
+    # adduser --uid 990 --gecos ",,," --disabled-password --disabled-login --no-create-home smb_guest
 
-    highlight "create thunder as uid 989"
-    adduser --uid 989 --gecos ",,," --disabled-password --disabled-login --no-create-home thunder
+    highlight "create thunder as uid 990"
+    adduser --uid 990 --gecos ",,," --disabled-password --disabled-login --no-create-home thunder
 
     highlight "change /mnt/winsun to admin:admin 775"
     mkdir -p /mnt/winsun

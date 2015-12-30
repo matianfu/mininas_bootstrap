@@ -1,0 +1,22 @@
+#!/bin/bash
+
+if [ "$#" -ne 1 ]; then
+    echo "usage: mininas_delete_user username"
+    exit 1
+fi
+
+. ${MININAS_PREFIX}/usr/local/sbin/mininas_common
+
+USERNAME=$1
+
+# remove user from samba database
+# may also use pdbedit -x
+smbpasswd -x $USERNAME
+
+# deluser will also remove group and remove user from all groups to which it belongs
+# home folder is also deleted
+deluser $USERNAME --remove-home
+
+id $USERNAME
+pdbedit -L | sort 
+
