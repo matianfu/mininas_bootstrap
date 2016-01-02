@@ -124,8 +124,12 @@ build_netboot_jessie () {
 #    echo "done"
 
     highlight "inject statically linked busybox"
-    $FAKEROOT cp $CACHE_DIR/busybox-x86_64 $TMP_DIR/initrd/bin/busybox-x86_64
+    $FAKEROOT cp $ARTIFACT_DIR/busybox-x86_64 $TMP_DIR/initrd/bin
     $FAKEROOT ln -s busybox-x86_64 $TMP_DIR/initrd/bin/gzip
+    echo "done"
+
+    highlight "inject statically linked mke2fs"
+    $FAKEROOT cp $ARTIFACT_DIR/mke2fs $TMP_DIR/initrd/bin
     echo "done"
 
     highlight "inject pv"
@@ -133,8 +137,8 @@ build_netboot_jessie () {
     echo "done"
 
     highlight "inject tar/untar scripts"
-    $FAKEROOT cp $ARTIFACT_DIR/tar_mmcblk0p1 $TMP_DIR/initrd/usr/bin
-    $FAKEROOT cp $ARTIFACT_DIR/untar_mmcblk0p1 $TMP_DIR/initrd/usr/bin
+    $FAKEROOT cp $ARTIFACT_DIR/tar_mmc $TMP_DIR/initrd/usr/bin
+    $FAKEROOT cp $ARTIFACT_DIR/untar_mmc $TMP_DIR/initrd/usr/bin
 
     # cp modules
     highlight "inject 4.3.3+ kernel modules (and remove old ones)"
@@ -167,6 +171,8 @@ build_mininas_tarball () {
         return 1;
     fi
 
+    banner "build mininas tarball"
+
     rm -rf ${STAGING_DIR}/svn
     mkdir -p ${STAGING_DIR}/svn
     cd ${STAGING_DIR}/svn
@@ -176,10 +182,13 @@ build_mininas_tarball () {
     local SVN_PASSWORD=123456
     local PYTHON_SVN_VERSION=$1
 
+    highlight "svn checkout version: $1"
     cd ${STAGING_DIR}/svn
     # svn checkout https://192.168.5.40/svn/PythonWebProject/branches/release --username jiangwei --password 123456 --quiet --no-auth-cache -r 1194
     svn checkout $PYTHON_SVN --username $SVN_NAME --password $SVN_PASSWORD --quiet --no-auth-cache -r $PYTHON_SVN_VERSION
+    echo "done"
 
+    highlight "compress mininas apps into tarball"
     cd release
     tar czf aaa.tar.gz aaa
 

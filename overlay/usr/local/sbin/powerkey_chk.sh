@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#2015-12-07  BY MARK FOR WS215i
+# 2015-12-07  BY MARK FOR WS215i
 #
 
 #PWR ON                    //PWR_BUTTON is pushed for now
