@@ -2,16 +2,19 @@
 
 source /overlay/__post_install
 
-prepare
+prepare_layout
+install_basic_files
 config_apt
+install_basic_commands
+install_samba
+create_users_and_groups
+
 install_ssh
 install_ssdp
 install_keys_and_leds
 install_updated_starter
 
-create_users
 install_mysql
-install_samba
 install_proftpd
 
 install_deb_packages

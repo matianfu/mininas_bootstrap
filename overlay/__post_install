@@ -11,9 +11,6 @@
 
 THUNDER_UID=990
 
-
-
-
 DASH="----------------------------------------"
 
 highlight () { 
@@ -58,41 +55,50 @@ create_smbshare_groups () {
     done
 }
 
-#
 # prepare folders and links
 #
-prepare() {
+prepare_layout() {
 
-    banner "prepare" 
-    highlight "prepare partitions, folders, and mount point"
+    #
+    #   
+    #
+    export PATH=/usr/local/sbin:$PATH
+
+    banner "prepare layout" 
 
     # mmcblk0p2 is already mounted at /mininas
 
-    # folders on p2
+    highlight "make folders on p2"
     mkdir -p /mininas/boot
     mkdir -p /mininas/ping
     mkdir -p /mininas/pong
-    mkdir -p /mininas/ping/configs
+    echo "done"
 
     # dont do this now, mysql installer will move the whole folder
     # mkdir -p /etc/mininas/data/mysql
-   
+  
+    highlight "make mininas folder"  
     mkdir -p /etc/mininas
     cp -r /overlay/etc/mininas/chassis /etc/mininas
     mkdir -p /etc/mininas/templates
     # template files are deployed by individual functions
+    echo "done"
 
+    highlight "link mininas/data to ping"
     ln -s /mininas/ping /etc/mininas/data
     echo "done"
 
-    highlight "deploy fstab, volume.json"
-   echo "done"
+    highlight "make data/configs folder"
+    mkdir -p /etc/mininas/data/configs
+    echo "done"
 }
 
 #
 #
 #
-deploy_basics () {
+install_basic_files () {
+
+    banner "install basic files"
 
     highlight "deploy fstab"
     overlay_file "/etc/fstab"
@@ -103,8 +109,9 @@ deploy_basics () {
     echo "done"
 
     highlight "deploy mininas scripts"
-    mkdir /usr/local/sbin
+    mkdir -p /usr/local/sbin
     cp /overlay/usr/local/sbin/mininas* /usr/local/sbin
+    echo "done"
 }
 
 #
@@ -125,49 +132,20 @@ config_apt () {
 #
 # 
 #
-install_basics () {
+install_basic_commands () {
 
     banner "install basic commands"
     # members : members
     # getent : libc-bin (which is already installed)
     # id : coreutils (which is already installed)
     # vim, tree (for convenience)
-    apt-get -y install members libc-bin coreutils vim tree
+    apt-get -y install members libc-bin coreutils vim tree initramfs-tools
     echo "done"
 }
 
 #
-#
-#
-install_mysql () {
-
-    banner "install mysql"
-
-    local MYSQL_PASSWORD="wenshang"
-
-    echo "mysql-server-5.5 mysql-server/root_password password ${MYSQL_PASSWORD}" | debconf-set-selections
-    echo "mysql-server-5.5 mysql-server/root_password_again password ${MYSQL_PASSWORD}" | debconf-set-selections
-
-    highlight "installing mysql-server-5.5, please wait..."
-    apt-get -y install mysql-server-5.5 &> /dev/null
-    echo "done"
-
-    # /etc/init.d/mysql status
-    # MySQL is stopped
-
-    highlight "move mysql database location and update my.cnf"
-    mkdir -p /etc/mininas/data/mysql
-
-    # this is important!
-    chown mysql:mysql /etc/mininas/data/mysql
-
-    mv /var/lib/mysql/* /etc/mininas/data/mysql
-    overlay_file /etc/mysql/my.cnf
-    echo "done"
-}
-
-#
-#
+# install samba as early as possible since 
+# all non-system users has samba account
 #
 install_samba () {
 
@@ -180,16 +158,11 @@ install_samba () {
     highlight "put conf, json, and template files"
     overlay_file "/etc/samba/smb.conf"
     overlay_file "/etc/mininas/data/configs/samba.json"
-    mkdir -p /etc/mininas/templates/samba
-    overlay_file "/etc/mininas/templates/samba/global"
-    overlay_file "/etc/mininas/templates/samba/share"
-    echo "done"
+    # mkdir -p /etc/mininas/templates/samba
+    # overlay_file "/etc/mininas/templates/samba/global"
+    # overlay_file "/etc/mininas/templates/samba/share"
 
-    # highlight "set samba password for admin, please input 123456, twice"    
-    # smbpasswd -a admin
-    highlight "set samba password for admin"
-    (echo "123456"; echo "123456") | smbpasswd -a admin
-
+    cp -r /overlay/etc/mininas/templates/samba /etc/mininas/templates
     echo "done"
 }
 
@@ -216,9 +189,6 @@ create_users_and_groups () {
     chown admin:admin /mnt/winsun
     chmod 775 /mnt/winsun
 
-    # create guest without home
-    # mininas_user_create guest 123456
-
     # no matter if thunder installed, the uid is pre-allocated
     highlight "create thunder as uid $THUNDER_UID"
     adduser --uid $THUNDER_UID --gecos ",,," --disabled-password --disabled-login --no-create-home thunder
@@ -241,6 +211,7 @@ create_users_and_groups () {
     done
     echo "done"
 }
+
 
 #
 # install ssh, enable root login
@@ -308,6 +279,35 @@ install_updated_starter () {
     install_service updated-starter
     enable_service updated-starter
 
+    echo "done"
+}
+
+#
+#
+#
+install_mysql () {
+
+    banner "install mysql"
+
+    local MYSQL_PASSWORD="wenshang"
+
+    echo "mysql-server-5.5 mysql-server/root_password password ${MYSQL_PASSWORD}" | debconf-set-selections
+    echo "mysql-server-5.5 mysql-server/root_password_again password ${MYSQL_PASSWORD}" | debconf-set-selections
+
+    highlight "installing mysql-server-5.5, please wait..."
+    apt-get -y install mysql-server-5.5 &> /dev/null
+    echo "done"
+
+    # /etc/init.d/mysql status
+    # MySQL is stopped
+
+    highlight "move mysql database location and update my.cnf"
+    # move folder
+    mv /var/lib/mysql /etc/mininas/data
+    # this is important!
+    chown mysql:mysql /etc/mininas/data/mysql
+
+    overlay_file /etc/mysql/my.cnf
     echo "done"
 }
 
