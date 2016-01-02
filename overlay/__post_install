@@ -47,14 +47,7 @@ enable_service () {
     systemctl enable $1 
 }
 
-create_smbshare_groups () {
-
-    for ID in $(seq -w 0 99); do
-        groupadd -g 100${ID} smbshare0${ID}
-        groupadd -g 110${ID} smbshare0${ID}ro
-    done
-}
-
+#
 # prepare folders and links
 #
 prepare_layout() {

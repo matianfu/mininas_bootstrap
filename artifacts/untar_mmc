@@ -12,8 +12,12 @@ echo $DASH
 echo "partition mmcblk0"
 echo $DASH
 (for x in o n p 1 33 76288 n p 2 76289 120800 a 1 p w; do echo $x; done) | busybox-x86_64 fdisk /dev/mmcblk0
-./mke2fs -F -t ext4 /dev/mmcblk0p1
-./mke2fs -F -t ext4 /dev/mmcblk0p2
+
+# waiting for kernel
+sleep 3
+
+mke2fs -F -t ext4 /dev/mmcblk0p1
+mke2fs -F -t ext4 /dev/mmcblk0p2
 echo "done"
 
 echo ""
@@ -21,8 +25,8 @@ echo $DASH
 echo "untar mmcblk0p1"
 echo $DASH
 mount -t ext4 /dev/mmcblk0p1 /mmc
-clean_mmc
-tar xvf /media/mmcblk0p1.tar -C /mmc
+# tar xvf /media/mmcblk0p1.tar -C /mmc
+cat /media/mmcblk0p1.tar | pv | tar xf - -C /mmc
 umount /mmc
 echo "done"
 
@@ -31,8 +35,8 @@ echo $DASH
 echo "untar mmclbk0p2"
 echo $DASH
 mount -t ext4 /dev/mmcblk0p2 /mmc
-clean_mmc
-tar xvf /media/mmcblk0p2.tar -C /mmc
+# tar xvf /media/mmcblk0p2.tar -C /mmc
+cat /media/mmcblk0p2.tar | pv | tar xf - -C /mmc
 umount /mmc
 echo "done"
 
