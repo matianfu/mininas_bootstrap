@@ -83,6 +83,8 @@ prepare_layout() {
 
     highlight "make data/configs folder"
     mkdir -p /etc/mininas/data/configs
+    mkdir -p /etc/mininas/data/disks
+    mkdir -p /etc/mininas/data/volumes
     echo "done"
 }
 

@@ -1,0 +1,12 @@
+[Unit]
+Description=Mininas Volume Mount Post Action
+Requires=mnt-winsun.mount
+After=mnt-winsun.mount
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/mininas_touch foobar_ExecStart
+ExecStop=/usr/local/sbin/mininas_touch foobar_ExecStop
+
+[Install]
+WantedBy=mnt-winsun.mount

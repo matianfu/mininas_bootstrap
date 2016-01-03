@@ -1,0 +1,68 @@
+#!/bin/bash
+
+LABEL="winsun"
+DATAMODE=
+
+while getopts ":L:d:" opt; do
+
+    case $opt in
+        L)
+            LABEL="$OPTARG"
+            shift 2
+            ;;
+        d)
+            DATAMODE="$OPTARG"
+            shift 2
+            ;;
+        \?)
+            echo "unrecognized option"
+            exit 1
+        ;;
+    esac
+done
+
+declare -A ARRAY
+for slot in $@ ; do
+
+    local dir=/run/mininas/disks/$slot
+
+    if [ ! -d $dir ]; then
+        exit 1
+    fi
+
+    ARRAY[$slot]=$(cat $dir/device_file)
+
+    
+done
+
+mkfs.btrfs -f -L $LABEL -d $DATAMODE $DEVICE_FILES
+if [ "$?" -ne 0 ]; then 
+    echo "mkfs.btrfs failed"
+    exit 1
+fi
+
+UUID_SET=$(btrfs filesystem show 2>&1 | grep -P "^Label: " | sed -n -e 's/^.*uuid: //p')
+if [ -z "$UUID_SET" ]; then
+    echo "no valid filesystem uuid found"
+    exit 2
+fi
+
+UUID=
+for uuid in $UUID_SET ; do
+
+    if [ -z "$uuid" ]; then continue; fi
+
+    local device_files=$(btrfs filesystem show $uuid 2>&1 | grep -P "\tdevid +\d+ size" | awk ' { print $8 }' | sort)
+
+    if [[ "${DEVICE_FILES}" == "$device_files" ]]; then 
+        UUID="$uuid"
+        break
+    fi
+done
+
+if [ -z "$UUID" ]; then
+    exit 3
+fi
+
+
+

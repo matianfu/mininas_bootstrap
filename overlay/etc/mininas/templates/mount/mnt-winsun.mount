@@ -2,7 +2,7 @@
 Description = Mininas Root Volume Mount
 
 [Mount]
-What = UUID=8e788f32-426f-405d-bb45-da6dbe948e90
+What = UUID=%%VOLUMEUUID%%
 Where = /mnt/winsun
 Type = btrfs
 
