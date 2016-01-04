@@ -14,9 +14,9 @@
    passwd program = /usr/bin/passwd %u
    passwd chat = *Enter\snew\s*\spassword:* %n\n *Retype\snew\s*\spassword:* %n\n *password\supdated\ssuccessfully* .
    pam password change = yes
-   map to guest = Bad User
+   map to guest = %%SMB_MAP_TO_GUEST%%
    security = user
-   guest account = smb_guest
+   guest account = nobody
 
 [homes]
    comment = Home Directory
@@ -24,4 +24,4 @@
    read only = no
    create mask = 0775
    directory mask = 0775
-   valid users = %%SMB_HOME_USERS%%
+   valid users = %S
