@@ -1,8 +1,15 @@
 #!/bin/bash
+#
+# GPL v2 license
+# 
+# Copyright winsuntech 2005
+#
+# wei.jiang@winsuntech.cn
+# lewis.ma@winsuntech.cn
+#
 
-#
-#
-#
+
+THUNDER_UID=990
 
 DASH="----------------------------------------"
 
@@ -41,40 +48,65 @@ enable_service () {
 }
 
 #
-# prepare partitions and folders
+# prepare folders and links
 #
-prepare() {
+prepare_layout() {
 
-    banner "prepare" 
-    highlight "prepare partitions, folders, and mount point"
+    #
+    #   
+    #
+    export PATH=/usr/local/sbin:$PATH
 
-    # mkdir /mininas
-    # mount -t ext4 /dev/mmcblk0p2 /mininas
+    banner "prepare layout" 
+
+    # mmcblk0p2 is already mounted at /mininas
+
+    highlight "make folders on p2"
     mkdir -p /mininas/boot
     mkdir -p /mininas/ping
     mkdir -p /mininas/pong
+    echo "done"
 
+    # dont do this now, mysql installer will move the whole folder
+    # mkdir -p /etc/mininas/data/mysql
+  
+    highlight "make mininas folder"  
     mkdir -p /etc/mininas
+    cp -r /overlay/etc/mininas/chassis /etc/mininas
     mkdir -p /etc/mininas/templates
+    # template files are deployed by individual functions
+    echo "done"
 
+    highlight "link mininas/data to ping"
     ln -s /mininas/ping /etc/mininas/data
+    echo "done"
+
+    highlight "make data/configs folder"
     mkdir -p /etc/mininas/data/configs
-    mkdir -p /etc/mininas/data/mysql
-
-    # mkdir here and change owner/group in create users
-    mkdir -p /mnt/winsun
+    mkdir -p /etc/mininas/data/disks
+    mkdir -p /etc/mininas/data/volumes
     echo "done"
+}
 
-    highlight "deploy fstab, volume.json"
+#
+#
+#
+install_basic_files () {
+
+    banner "install basic files"
+
+    highlight "deploy fstab"
     overlay_file "/etc/fstab"
-    overlay_file "/etc/mininas/data/configs/volume.json"
     echo "done"
 
-    highlight "deploy disk-watcher, automount-disk service (unit file)"
-    overlay_file "/lib/systemd/system/automount-disk.service"
-    overlay_file "/lib/systemd/system/disk-watcher.service"
+    highlight "deploy volume.json"
+    overlay_file "/etc/mininas/data/configs/volume.json"    
     echo "done"
-   
+
+    highlight "deploy mininas scripts"
+    mkdir -p /usr/local/sbin
+    cp /overlay/usr/local/sbin/mininas* /usr/local/sbin
+    echo "done"
 }
 
 #
@@ -91,6 +123,90 @@ config_apt () {
     apt-get update &> /dev/null
     echo "done"
 }
+
+#
+# 
+#
+install_basic_commands () {
+
+    banner "install basic commands"
+    # members : members
+    # getent : libc-bin (which is already installed)
+    # id : coreutils (which is already installed)
+    # vim, tree (for convenience)
+    apt-get -y install members libc-bin coreutils vim tree initramfs-tools
+    echo "done"
+}
+
+#
+# install samba as early as possible since 
+# all non-system users has samba account
+#
+install_samba () {
+
+    banner "install samba"
+
+    highlight "installing samba, please wait..."
+    apt-get -y install samba &> /dev/null
+    echo "done"
+    
+    highlight "put conf, json, and template files"
+    overlay_file "/etc/samba/smb.conf"
+    overlay_file "/etc/mininas/data/configs/samba.json"
+    # mkdir -p /etc/mininas/templates/samba
+    # overlay_file "/etc/mininas/templates/samba/global"
+    # overlay_file "/etc/mininas/templates/samba/share"
+
+    cp -r /overlay/etc/mininas/templates/samba /etc/mininas/templates
+    echo "done"
+}
+
+#
+#
+#
+create_users_and_groups () {
+
+    banner "create users"
+
+    # change UID_MAX to 2000", does NOT work
+    # overlay_file "/etc/login.defs"
+
+    # highlight "create admin as uid 1000"    
+    # adduser --uid 1000 --gecos ",,," --disabled-password --disabled-login --no-create-home admin
+    # echo "admin:123456" | chpasswd
+
+    # create admin without home
+    mininas_user_create admin 123456
+
+    # /mnt/winsun is owned by admin:admin
+    highlight "change /mnt/winsun to admin:admin 775"
+    mkdir -p /mnt/winsun
+    chown admin:admin /mnt/winsun
+    chmod 775 /mnt/winsun
+
+    # no matter if thunder installed, the uid is pre-allocated
+    highlight "create thunder as uid $THUNDER_UID"
+    adduser --uid $THUNDER_UID --gecos ",,," --disabled-password --disabled-login --no-create-home thunder
+    echo "done"
+
+    highlight "create smbshare and smbsharero groups"
+    local SHAREGROUP=
+    local SHAREGROUPRO=
+
+    for num in $(seq -w 0 099); do
+
+        SHAREGROUP=smbshare${num}
+        SHAREGROUPRO=smbshare${num}ro
+
+        addgroup --gid 10${num} $SHAREGROUP
+        adduser admin $SHAREGROUP
+        addgroup --gid 11${num} $SHAREGROUPRO
+        adduser admin $SHAREGROUPRO
+
+    done
+    echo "done"
+}
+
 
 #
 # install ssh, enable root login
@@ -125,6 +241,9 @@ install_ssdp () {
     echo "done"
 }
 
+#
+# keys and leds service, also control fan speed 
+#
 install_keys_and_leds () {
 
     banner "install keys-and-leds service"
@@ -140,6 +259,9 @@ install_keys_and_leds () {
     echo "done"
 }
 
+#
+# updated (update daemon starter)
+#
 install_updated_starter () {
 
     banner "install updated-starter service"
@@ -155,34 +277,9 @@ install_updated_starter () {
     echo "done"
 }
 
-create_users () {
-
-    banner "create users"
-
-    # change UID_MAX to 2000", does NOT work
-    # overlay_file "/etc/login.defs"
-
-    highlight "create admin as uid 1000"    
-    adduser --uid 1000 --gecos ",,," --disabled-password --disabled-login --no-create-home admin
-    echo "admin:123456" | chpasswd
-
-    highlight "create smb_guest as uid 990"
-    adduser --uid 990 --gecos ",,," --disabled-password --disabled-login --no-create-home smb_guest
-
-    highlight "create thunder as uid 989"
-    adduser --uid 989 --gecos ",,," --disabled-password --disabled-login --no-create-home thunder
-
-    highlight "change /mnt/winsun to admin:admin 775"
-    mkdir -p /mnt/winsun
-    chown admin:admin /mnt/winsun
-    chmod 775 /mnt/winsun
-
-    highlight "add thuner to admin group"
-    adduser thunder admin
-
-    # echo "done"
-}
-
+#
+#
+#
 install_mysql () {
 
     banner "install mysql"
@@ -194,33 +291,21 @@ install_mysql () {
 
     highlight "installing mysql-server-5.5, please wait..."
     apt-get -y install mysql-server-5.5 &> /dev/null
+    echo "done"
 
+    # /etc/init.d/mysql status
+    # MySQL is stopped
+
+    highlight "move mysql database location and update my.cnf"
+    # move folder
+    mv /var/lib/mysql /etc/mininas/data
+    # this is important!
+    chown mysql:mysql /etc/mininas/data/mysql
+
+    overlay_file /etc/mysql/my.cnf
     echo "done"
 }
 
-install_samba () {
-
-    banner "install samba"
-
-    highlight "installing samba, please wait..."
-    apt-get -y install samba &> /dev/null
-    echo "done"
-    
-    highlight "put conf, json, and template files"
-    overlay_file "/etc/samba/smb.conf"
-    overlay_file "/etc/mininas/data/configs/samba.json"
-    mkdir -p /etc/mininas/templates/samba
-    overlay_file "/etc/mininas/templates/samba/global"
-    overlay_file "/etc/mininas/templates/samba/share"
-    echo "done"
-
-    # highlight "set samba password for admin, please input 123456, twice"    
-    # smbpasswd -a admin
-    highlight "set samba password for admin"
-    (echo "123456"; echo "123456") | smbpasswd -a admin
-
-    echo "done"
-}
 
 install_proftpd () {
 
@@ -248,11 +333,11 @@ install_deb_packages () {
     # libusb-1.0-0 is already installed in base
     # python-dev python-pip removed
     # python-dev is required if easy_install-ing psutil package
-    # python-eyed3
+    # python-eyed3, python-apscheduler moved to easy_install
     highlight "installing packages, please wait..."
     apt-get -y --force-yes install gdisk util-linux expect curl libusb-1.0-0-dev libmysqlclient-dev python \
         python-django python-setuptools python-mysql.connector python-libtorrent python-mysqldb python-imaging \
-        python-ntplib python-pexpect python-django-debug-toolbar python-apscheduler python-psutil python-pyinotify &> /dev/null
+        python-ntplib python-pexpect python-django-debug-toolbar python-psutil python-pyinotify &> /dev/null
     echo "done"
 
     highlight "picking btrfs-tools from sid, please wait..."
@@ -263,7 +348,13 @@ install_deb_packages () {
 install_python_packages () {
 
     banner "install python packages"
+
+    highlight "install eyeD3"
     easy_install eyeD3
+    echo "done"
+
+    highlight "install apscheduler"
+    easy_install apscheduler
     echo "done"
 }
 
@@ -303,7 +394,18 @@ EOF
 
     highlight "install mininas service"   
     install_service mininas
+    enable_service mininas
     echo "done"
+
+    highlight "install disk-watcher service, automount-disk service"
+    install_service disk-watcher
+    enable_service disk-watcher
+    ech "done"
+
+    highlight "install automount-disk service"
+    install_service automount-disk 
+    enable_service automount-disk
+    echo "done"   
 }
 
 install_thunder() {
@@ -313,6 +415,10 @@ install_thunder() {
     highlight "install prerequisite packages, please wait..."
     apt-get -y install lib32z1 &> /dev/null
     echo "done"
+
+    # thunder need write permission to mount point
+    highlight "add thuner to admin group"
+    adduser thunder admin
 
     highlight "copy files and set ownership/permissions"
 
@@ -359,8 +465,17 @@ install_dlna () {
 
 install_netatalk() {
 
-    # not implemented yet   
-    apt-get -y -t sid install netatalk
+    banner "install netatalk"
+    echo "netatalk installer not implemented yet"
+    # apt-get -y -t sid install netatalk
+
+    # tar xzf /intall/netatalk-xxxx.tar.gz -C /
+
+    # tar czf netatalk.... -C /xx/staging .
+
+    # install_service netatalk
+    # enable_service netatalk
+    echo "done"
 }
 
 install_kernel() {

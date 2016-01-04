@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# $1 expected exit code for previous command
+# $2 exit code
+# $3 error string
+# $4 ...
+#
+# check if exit code of previous command is $1, if not, execute $4 ... as one line command, and then exit with $2 and print out $3
+#
+exit_ne () {
+
+    local result=$?         # must do this at first
+    local expect_code=$1
+    local exit_code=$2
+    local exit_string=$3
+
+    if [ "$result" != "$expect_code" ]; then
+        shift 3
+        $@
+        echo "ERROR ($exit_code) : $exit_string"
+        exit $exit_code
+    fi  
+}
+
+exit_eq () {
+
+    local result=$?         # must do this at first
+    local expect_code=$1
+    local exit_code=$2
+    local exit_string=$3
+
+    if [ "$result" == "$expect_code" ]; then
+        shift 3
+        $@
+        echo "ERROR ($exit_code) : $exit_string"
+        exit $exit_code
+    fi  
+}
+

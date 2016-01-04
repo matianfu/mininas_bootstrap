@@ -2,6 +2,8 @@
 
 # set -e
 
+MININAS_APP_VER=1260
+
 if [ ! -e "scripts/env_setup" ]; then
     echo "please run this script in winsun folder"
     exit 1
@@ -14,7 +16,7 @@ if [ ! -e "staging/linux-image-4.3.3.001+_001_amd64.deb" ]; then
 fi
 
 build_netboot_jessie
-build_mininas_tarball 1239
+build_mininas_tarball $MININAS_APP_VER
 generate_output
 
 

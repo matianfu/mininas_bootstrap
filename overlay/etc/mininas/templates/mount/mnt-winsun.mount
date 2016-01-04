@@ -1,0 +1,10 @@
+[Unit]
+Description = Mininas Root Volume Mount
+
+[Mount]
+What = UUID=%%VOLUMEUUID%%
+Where = /mnt/winsun
+Type = btrfs
+
+[Install]
+WantedBy = multi-user.target

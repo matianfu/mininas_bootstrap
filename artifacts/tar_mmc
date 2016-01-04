@@ -1,0 +1,21 @@
+#!/bin/sh
+
+set -e
+
+rm -rf /mmc
+mkdir /mmc
+
+echo "tar mmcblk0p1"
+mount -t ext4 /dev/mmcblk0p1 /mmc
+tar cf - -C /mmc . | pv > /media/mmcblk0p1.tar
+umount /mmc
+
+echo "tar mmcblk0p2"
+mount -t ext4 /dev/mmcblk0p2 /mmc
+tar cf - -C /mmc . | pv > /media/mmcblk0p2.tar
+umount /mmc
+
+rm -rf /mmc
+
+echo "done"
+

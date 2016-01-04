@@ -1,0 +1,18 @@
+[Unit]
+Description=Mininas Volume Mount Post Action
+
+# dont do this !!!
+# Requires=mnt-winsun.mount
+
+After=mnt-winsun.mount
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/mininas_touch foobar_ExecStart
+#
+# for oneshot ExecStop simply be called after ExecStart, so, nonsense
+# ExecStop=/usr/local/sbin/mininas_touch foobar_ExecStop
+
+[Install]
+WantedBy=mnt-winsun.mount 
+# multi-user.target

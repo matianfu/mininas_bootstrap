@@ -1,0 +1,8 @@
+#!/bin/bash
+
+TIMESTAMP=$(date +%H%M%S)
+
+mkdir -p /run/mininas/tmp/touch
+
+touch /run/mininas/tmp/touch__${TIMESTAMP}__$1
+

@@ -1,0 +1,90 @@
+#!/bin/bash
+
+DEBUG="yes"
+
+DASH=-------------------------------------------------
+
+if [ ! -z "$DEBUG" ]; then
+    btrfs filesystem show $1
+    echo "$DASH"
+fi
+
+UUID=$1
+
+mkdir -p /run/mininas/tmp
+O_BUFFER=/run/mininas/tmp/btrfs_filesystem_show_output_buffer
+
+#
+# issue command and redirect both stdout and stderr to buffer file
+#
+btrfs filesystem show $UUID > $O_BUFFER 2>&1
+if [ "$?" -ne 0 ]; then
+    exit 1
+fi
+
+if [ ! -z "$DEBUG" ]; then
+    echo $DASH
+    cat $O_BUFFER
+    echo $DASH
+fi
+#
+# extract device number
+#
+TOTAL=$(grep -P "\tTotal devices \d+ FS bytes" $O_BUFFER | awk '{ print $3 }')
+
+if [ ! -z "$DEBUG" ]; then echo "TOTAL: $TOTAL"; fi
+
+if [ -z "$TOTAL" ]; then
+    exit 1
+fi
+
+
+#
+MISSING_SET=$(grep -P "warning devid \d+ not found already" $O_BUFFER | awk '{ print $3 }')
+
+if [ ! -z "$DEBUG" ]; then echo "MISSING DEVID: $MISSING_SET"; fi
+
+#
+READY_SET=$(grep -P "\tdevid +\d+ size" $O_BUFFER | awk '{ print $2 }')
+
+if [ ! -z "$DEBUG" ]; then echo "READY DEVID: $READY_SET"; fi
+
+#
+if [ -z "$MISSING_SET" ]; then
+    VOLUME_STATE="ready"
+else
+    VOLUME_STATE="missing"
+fi
+
+RUN_VOLUME_PATH=/run/mininas/volumes/$UUID
+READY_PATH=$RUN_VOLUME_PATH/ready
+MISSING_PATH=$RUN_VOLUME_PATH/missing
+
+rm -rf $RUN_VOLUME_PATH
+
+mkdir -p $RUN_VOLUME_PATH
+mkdir -p $READY_PATH
+mkdir -p $MISSING_PATH
+
+echo "$VOLUME_STATE" > $RUN_VOLUME_PATH/state
+echo "$TOTAL" > $RUN_VOLUME_PATH/total
+
+for devid in $READY_SET; do
+    DEVID_PATH=$READY_PATH/$devid
+    mkdir -p $DEVID_PATH
+    echo $(grep -P "\tdevid +${devid} size" $O_BUFFER | awk '{print $4}') > $DEVID_PATH/size
+    echo $(grep -P "\tdevid +${devid} size" $O_BUFFER | awk '{print $6}') > $DEVID_PATH/used
+    echo $(grep -P "\tdevid +${devid} size" $O_BUFFER | awk '{print $8}') > $DEVID_PATH/path
+done
+
+for devid in $MISSING_SET; do
+    DEVID_PATH=$MISSING_PATH/$devid
+    mkdir -p $DEVID_PATH
+done
+
+if [ ! -z "$DEBUG" ]; then 
+    tree /run/mininas/volumes/$UUID
+fi
+
+exit 0
+

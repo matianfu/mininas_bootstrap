@@ -1,0 +1,52 @@
+#!/bin/bash
+
+#
+# create_user_home username path
+#
+
+if [ "$#" -ne 2 ] ; then
+    echo "usage: mininas_create_user_home username path"
+    exit 1
+fi
+
+. ${MININAS_PREFIX}/usr/local/sbin/mininas_common
+
+echo "UID: $UID"
+USERNAME=$1
+HOMEPATH=$2
+
+TMPPATH="/run/tmpABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"
+
+# check username
+getent passwd $USERNAME
+exit_ne 0 10 "username does NOT exist"
+
+# path must be subfolder for /mnt/winsun/
+echo "$HOMEPATH" | grep -e ^/mnt/winsun/
+exit_ne 0 11 "path is not sub-folder of /mnt/winsun/"
+
+# test path name
+rm -rf $TMPPATH
+mkdir -p $TMPPATH
+mkdir -p ${TMPPATH}/${HOMEPATH}
+
+test -d ${TMPPATH}/${HOMEPATH}
+exit_ne 0 12 "path name illegal" rm -rf $TMPPATH
+rm -rf $TMPPATH
+
+# delete old path if existing
+if [ -d "$HOMEPATH" ]; then
+    rm -rf $HOMEPATH
+    exit_ne 0 13 "old path cannot be removed"
+fi
+
+# make folder
+mkdir $HOMEPATH
+test -d $HOMEPATH
+exit_ne 0 14 "failed to create folder"
+
+# set folder
+usermod --home $HOMEPATH $USERNAME
+exit_ne 0 15 "failed to set home folder" rm -rf $HOMEPATH
+
+
