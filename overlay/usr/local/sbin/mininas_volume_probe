@@ -1,0 +1,142 @@
+#!/bin/bash
+
+DEBUG="yes"
+
+DASH=-------------------------------------------------
+
+if [ ! -z "$DEBUG" ]; then
+    btrfs filesystem show $1
+    echo "$DASH"
+fi
+
+if [ -z "$1" ]; then
+    echo "shit"
+fi
+
+UUID=$1
+
+mkdir -p /run/mininas/tmp
+O_BUFFER=/run/mininas/tmp/btrfs_filesystem_show_output_buffer
+
+#
+# issue command and redirect both stdout and stderr to buffer file
+#
+btrfs filesystem show $UUID > $O_BUFFER 2>&1
+if [ "$?" -ne 0 ]; then
+    exit 1
+fi
+
+if [ ! -z "$DEBUG" ]; then
+    echo $DASH
+    cat $O_BUFFER
+    echo $DASH
+fi
+
+#
+# extract device number
+#
+TOTAL=$(grep -P "\tTotal devices \d+ FS bytes" $O_BUFFER | awk '{ print $3 }')
+
+if [ ! -z "$DEBUG" ]; then echo "TOTAL: $TOTAL"; fi
+
+if [ -z "$TOTAL" ]; then
+    exit 1
+fi
+
+#
+# extract missing set
+#
+MISSING_SET=$(grep -P "warning devid \d+ not found already" $O_BUFFER | awk '{ print $3 }')
+
+if [ ! -z "$DEBUG" ]; then echo "MISSING DEVID: $MISSING_SET"; fi
+
+#
+# extract ready set
+#
+READY_SET=$(grep -P "\tdevid +\d+ size" $O_BUFFER | awk '{ print $2 }')
+
+if [ ! -z "$DEBUG" ]; then echo "READY DEVID: $READY_SET"; fi
+
+#
+#
+#
+if [ -z "$MISSING_SET" ]; then
+    VOLUME_STATE="ready"
+else
+    VOLUME_STATE="missing"
+fi
+
+
+
+RUN_VOLUME_PATH=/run/mininas/volumes/$UUID
+READY_PATH=$RUN_VOLUME_PATH/ready
+BYDEVID_PATH=$RUN_VOLUME_PATH/ready-by-devid
+MISSING_PATH=$RUN_VOLUME_PATH/missing
+
+rm -rf $RUN_VOLUME_PATH
+
+mkdir -p $RUN_VOLUME_PATH
+mkdir -p $READY_PATH
+mkdir -p $BYDEVID_PATH
+mkdir -p $MISSING_PATH
+
+echo "$VOLUME_STATE" > $RUN_VOLUME_PATH/state
+echo "$TOTAL" > $RUN_VOLUME_PATH/total
+
+for devid in $READY_SET; do
+
+    echo "DEBUG: devid is $devid"
+
+    DEVPATH=$(grep -P "\tdevid +${devid} size" $O_BUFFER | awk '{print $8}')
+    echo "DEBUG: DEVPATH is $DEVPATH"
+
+    echo "DEBUG: Begin slot loop"
+    for slot in $(ls -1 /run/mininas/chassis); do
+
+        echo "slot is $slot"
+        TEMP=$(cat /run/mininas/chassis/$slot/path)
+        echo "TEMP is $TEMP"
+        echo "DEVPATH is $DEVPATH"
+
+        if [ "$TEMP" = "$DEVPATH" ]; then
+
+            SLOT_PATH=$READY_PATH/$slot
+
+            ln -s /run/mininas/chassis/$slot $SLOT_PATH
+
+            echo "$devid" > $SLOT_PATH/fs/id_btrfs_devid
+            echo "$slot" > $BYDEVID_PATH/$devid
+
+            # echo "SLOT_PATH is $SLOT_PATH"
+
+            # mkdir -p $SLOT_PATH
+
+            # echo "$slot" > $SLOT_PATH/slot
+            # echo "$devid" > $SLOT_PATH/devid
+
+            # echo $(grep -P "\tdevid +${devid} size" $O_BUFFER | awk '{print $4}') > $SLOT_PATH/size
+            # echo $(grep -P "\tdevid +${devid} size" $O_BUFFER | awk '{print $6}') > $SLOT_PATH/used
+            # echo $(grep -P "\tdevid +${devid} size" $O_BUFFER | awk '{print $8}') > $SLOT_PATH/path
+
+            # cp /run/mininas/chassis/$slot/
+
+            # create link by devid
+            # ln -s "../ready/$slot" ${BYDEVID_PATH}/${devid}
+            
+        fi
+    done
+    echo "DEBUG: End slot loop"
+    
+done
+
+for devid in $MISSING_SET; do
+    DEVID_PATH=$MISSING_PATH/$devid
+    mkdir -p $DEVID_PATH
+done
+
+if [ ! -z "$DEBUG" ]; then 
+    tree /run/mininas/volumes/$UUID
+fi
+
+exit 0
+

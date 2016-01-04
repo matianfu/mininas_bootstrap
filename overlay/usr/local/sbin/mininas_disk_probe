@@ -42,7 +42,7 @@ for i in $(seq 1 $ATA_COUNT); do
         if [ ! -z "${ARRAY[id_model]}" ] && [ ! -z "${ARRAY[id_serial_short]}" ]; then
             
             DISK_IDENTITY="${ARRAY[id_model]}_${ARRAY[id_serial_short]}" 
-            echo "$DISK_IDENTITY" > $RUN_CHASSIS_PATH/disk_identity
+            # echo "$DISK_IDENTITY" > $RUN_CHASSIS_PATH/disk
 
             DISK_IDENTITY_PATH=/etc/mininas/data/disks/$DISK_IDENTITY
 
@@ -58,10 +58,12 @@ for i in $(seq 1 $ATA_COUNT); do
                     echo "${ARRAY[$prop]}" > $DISK_IDENTITY_PATH/$prop
                 fi
             done
+
+            ln -s $DISK_IDENTITY_PATH $RUN_CHASSIS_PATH/disk 
         fi
 
         # file system
-        FS_PATH=$RUN_CHASSIS_PATH/filesystem
+        FS_PATH=$RUN_CHASSIS_PATH/fs
         mkdir -p $FS_PATH
 
         for prop in id_fs_type id_fs_usage id_fs_uuid id_fs_uuid_sub id_btrfs_ready \
