@@ -70,11 +70,34 @@ echo "$VOLUME_STATE" > $RUN_VOLUME_PATH/state
 echo "$TOTAL" > $RUN_VOLUME_PATH/total
 
 for devid in $READY_SET; do
-    DEVID_PATH=$READY_PATH/$devid
-    mkdir -p $DEVID_PATH
-    echo $(grep -P "\tdevid +${devid} size" $O_BUFFER | awk '{print $4}') > $DEVID_PATH/size
-    echo $(grep -P "\tdevid +${devid} size" $O_BUFFER | awk '{print $6}') > $DEVID_PATH/used
-    echo $(grep -P "\tdevid +${devid} size" $O_BUFFER | awk '{print $8}') > $DEVID_PATH/path
+
+    echo "DEBUG: devid is $devid"
+
+    DEVPATH=$(grep -P "\tdevid +${devid} size" $O_BUFFER | awk '{print $8}')
+    echo "DEBUG: DEVPATH is $DEVPATH"
+
+    echo "DEBUG: Begin slot loop"
+    for slot in $(ls -1 /run/mininas/chassis); do
+
+        echo "slot is $slot"
+        TEMP=$(cat /run/mininas/chassis/$slot/path)
+        echo "TEMP is $TEMP"
+        echo "DEVPATH is $DEVPATH"
+
+        if [ "$TEMP" = "$DEVPATH" ]; then
+
+            SLOT_PATH=$READY_PATH/$slot
+            echo "SLOT_PATH is $SLOT_PATH"
+            mkdir -p $SLOT_PATH
+
+            echo "$devid" > $SLOT_PATH/devid
+            echo $(grep -P "\tdevid +${devid} size" $O_BUFFER | awk '{print $4}') > $SLOT_PATH/size
+            echo $(grep -P "\tdevid +${devid} size" $O_BUFFER | awk '{print $6}') > $SLOT_PATH/used
+            echo $(grep -P "\tdevid +${devid} size" $O_BUFFER | awk '{print $8}') > $SLOT_PATH/path
+        fi
+    done
+    echo "DEBUG: End slot loop"
+    
 done
 
 for devid in $MISSING_SET; do
