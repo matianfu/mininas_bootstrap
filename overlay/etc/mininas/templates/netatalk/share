@@ -1,0 +1,4 @@
+[%%TM_FOLDER_NAME%%]
+	path = %%TM_FOLDER_PATH%%
+	time machine = yes
+	vol size limit = %%TM_FOLDER_SIZE%%
