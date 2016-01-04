@@ -474,7 +474,12 @@ install_netatalk() {
     # tar czf netatalk.... -C /xx/staging .
 
     # install_service netatalk
-    # enable_service netatalk
+
+	tar xzf /overlay/install/netatalk-3.1.8.tar.gz -C /
+	rm -rf /usr/local/var/netatalk
+	ln -s /etc/mininas/data/netatalk /usr/local/var
+    enable_service netatalk
+
     echo "done"
 }
 
