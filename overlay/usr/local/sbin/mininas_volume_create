@@ -1,8 +1,14 @@
 #!/bin/bash
 
+DEBUG="yes"
+
 LABEL="winsun"
 DATAMODE=
 
+#
+# -L label (optional)
+# -d data mode (optional)
+#
 while getopts ":L:d:" opt; do
 
     case $opt in
@@ -21,21 +27,49 @@ while getopts ":L:d:" opt; do
     esac
 done
 
-declare -A ARRAY
+if [ -z "$1" ]; then
+    echo "provide disk slot numbers please"
+    exit 1
+fi
+
+#
+# TODO should we do it now?
+#
+mininas_disk_probe
+
+#
+# validate slot number
+#
 for slot in $@ ; do
-
-    local dir=/run/mininas/disks/$slot
-
-    if [ ! -d $dir ]; then
+    if [ ! -d "/run/mininas/chassis/$slot" ]; then
+        echo "invalid slot number"
         exit 1
     fi
-
-    ARRAY[$slot]=$(cat $dir/device_file)
-
-    
 done
 
-mkfs.btrfs -f -L $LABEL -d $DATAMODE $DEVICE_FILES
+#
+# sort and remove duplicate, DEVPATH is a multiple line string, containing 
+# device file path each line (eg. /dev/sda)
+#
+DEVPATH=$( (for slot in $@; do echo $(cat /run/mininas/chassis/$slot/path); done) | sort -u )
+DEVPATH_ONELINE=$(echo "$DEVPATH" | tr '\n' ' ')
+if [ ! -z "$DEBUG" ]; then
+    echo "---"
+    echo "DEVPATH:"
+    echo "$DEVPATH"
+    echo "DEVPATH_ONELINE: $DEVPATH_ONELINE"
+    echo "---"
+fi
+
+#
+# run mkfs.btrfs command
+#
+if [ -z "$DATAMODE" ]; then
+    mkfs.btrfs -f -L $LABEL $DEVPATH_ONELINE 
+else
+    mkfs.btrfs -f -L $LABEL -d $DATAMODE $DEVPATH_ONELINE
+fi
+
 if [ "$?" -ne 0 ]; then 
     echo "mkfs.btrfs failed"
     exit 1
@@ -47,12 +81,18 @@ if [ -z "$UUID_SET" ]; then
     exit 2
 fi
 
+if [ ! -z "$DEBUG" ]; then
+    echo "UUID_SET"
+fi
+
+exit 0
+
 UUID=
 for uuid in $UUID_SET ; do
 
     if [ -z "$uuid" ]; then continue; fi
 
-    local device_files=$(btrfs filesystem show $uuid 2>&1 | grep -P "\tdevid +\d+ size" | awk ' { print $8 }' | sort)
+    device_files=$(btrfs filesystem show $uuid 2>&1 | grep -P "\tdevid +\d+ size" | awk ' { print $8 }' | sort)
 
     if [[ "${DEVICE_FILES}" == "$device_files" ]]; then 
         UUID="$uuid"

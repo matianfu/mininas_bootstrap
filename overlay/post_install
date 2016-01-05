@@ -23,8 +23,8 @@ install_mininas_app
 
 install_thunder
 install_dlna
-# install_netatalk
 install_qqiot
+install_netatalk
 install_kernel
 do_cleanup 
 

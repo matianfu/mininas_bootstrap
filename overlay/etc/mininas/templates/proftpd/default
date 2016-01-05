@@ -3,7 +3,7 @@ Include /etc/proftpd/modules.conf
 UseIPv6				on
 IdentLookups			off
 
-ServerName			"mininas FTP Server"
+ServerName			"MiniNAS FTP Server"
 ServerType			standalone
 DeferWelcome			off
 MultilineRFC2228		on
@@ -12,15 +12,15 @@ ShowSymlinks			off
 
 TimeoutNoTransfer		600
 TimeoutStalled			600
-TimeoutIdle    %%FTP_TIMEOUT_IDLE%%
+TimeoutIdle			%%FTP_TIMEOUT_IDLE%%
 
-DisplayLogin    welcome.msg
+DisplayLogin			welcome.msg
 DisplayChdir               	.message true
 ListOptions                	"-l"
 
 DenyFilter			\*.*/
 
-Port    %%FTP_PORT%%
+Port				%%FTP_PORT%%
 
 <IfModule mod_dynmasq.c>
 </IfModule>
@@ -30,42 +30,43 @@ MaxInstances			30
 User				proftpd
 Group				nogroup
 
-Umask				022  022
+Umask				022 022
 AllowOverwrite			on
 
-TransferLog /var/log/proftpd/xferlog
-SystemLog   /var/log/proftpd/proftpd.log
+TransferLog			/var/log/proftpd/xferlog
+SystemLog			/var/log/proftpd/proftpd.log
 
 <IfModule mod_quotatab.c>
-QuotaEngine off
+	QuotaEngine		off
 </IfModule>
 
 <IfModule mod_ratio.c>
-Ratios off
+	Ratios			off
 </IfModule>
 
 <IfModule mod_delay.c>
-DelayEngine on
+	DelayEngine		on
 </IfModule>
 
 <IfModule mod_ctrls.c>
-ControlsEngine        off
-MaxClients    %%FTP_MAX_CLIENTS%%
-ControlsLog           /var/log/proftpd/controls.log
-ControlsInterval      5
-ControlsSocket        /var/run/proftpd/proftpd.sock
+	ControlsEngine		off
+	MaxClients		%%FTP_MAX_CLIENTS%%
+	ControlsLog		/var/log/proftpd/controls.log
+	ControlsInterval	5
+	ControlsSocket		/var/run/proftpd/proftpd.sock
 </IfModule>
 
 <IfModule mod_ctrls_admin.c>
-AdminControlsEngine off
+	AdminControlsEngine	off
 </IfModule>
 
 Include /etc/proftpd/conf.d/
-MaxConnectionsPerHost    %%FTP_MAX_HOST%%
-MaxLoginAttempts    %%FTP_MAX_LOGIN%%
-DefaultTransferMode ascii
-AllowRetrieveRestart on
-AllowStoreRestart on
-DeleteAbortedStores off
-TimesGMT off
-DefaultRoot    %%FTP_DEFAULT_ROOT%%
+
+MaxConnectionsPerHost		%%FTP_MAX_HOST%%
+MaxLoginAttempts		%%FTP_MAX_LOGIN%%
+DefaultTransferMode		ascii
+AllowRetrieveRestart		on
+AllowStoreRestart		on
+DeleteAbortedStores		off
+TimesGMT			off
+DefaultRoot			%%FTP_DEFAULT_ROOT%%
