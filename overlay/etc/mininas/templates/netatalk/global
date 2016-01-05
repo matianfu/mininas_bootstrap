@@ -1,0 +1,8 @@
+[Global]
+	ivol preset = default_for_all_vol
+	log file = /var/log/netatalk.log
+[default_for_all_volumes]
+    file perm = 0700
+	directory perm = 0700
+[Homes]
+	basedir regex = /mnt
