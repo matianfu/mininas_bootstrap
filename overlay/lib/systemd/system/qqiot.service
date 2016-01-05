@@ -1,0 +1,10 @@
+[Unit]
+Description=MiniNAS QQIOT Service
+
+[Service]
+Type=forking
+ExecStart=/usr/local/sbin/mininasqqiot
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

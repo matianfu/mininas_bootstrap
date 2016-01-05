@@ -85,6 +85,7 @@ prepare_layout() {
     mkdir -p /etc/mininas/data/configs
     mkdir -p /etc/mininas/data/disks
     mkdir -p /etc/mininas/data/volumes
+    mkdir -p /etc/mininas/data/qqiot
     echo "done"
 }
 
@@ -482,7 +483,28 @@ install_netatalk() {
 
     echo "done"
 }
-
+install_qqiot() {
+	banner "install qqiot"
+	highlight "install bin mininasqqiot"
+	local FILE="/usr/local/sbin/mininasqqiot"
+	overlay_file $FILE
+	chmod a+x $FILE
+	
+	highlight "install lib"
+	local FILE="/usr/local/lib/libnassdk.so"
+	overlay_file $FILE
+	local FILE="/usr/local/lib/libtxdevicesdk.so"
+	overlay_file $FILE
+	
+	highlight "install service public key"
+	local FILE="/etc/mininas/data/qqiot/170001154.pem"
+	overlay_file $FILE
+	chmod 400 $FILE
+	
+	highligt "install qqiot service "
+	install_service qqiot
+	enable_service qqiot
+}
 install_kernel() {
 
     banner "install kernel"
