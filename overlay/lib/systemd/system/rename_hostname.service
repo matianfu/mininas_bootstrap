@@ -5,7 +5,7 @@ Description=Winsun Mininas Rename Hostname
 Type=oneshot
 Environment=LANG=en_US.UTF8
 ExecStartPre=
-ExecStart=/bin/bash -c "cat /sys/class/net/eth0/address | awk -F: '{ print "WinsunTech-" $4 $5 $6 }' | xargs hostnamectl set-hostname --static"
+ExecStart=/bin/bash -c "cat /sys/class/net/eth0/address | awk -F: '{ print \"WinsunTech-\" $4 $5 $6 }' | xargs hostnamectl set-hostname --static"
 
 [Install]
 WantedBy=multi-user.target
