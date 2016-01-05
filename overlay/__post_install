@@ -107,6 +107,8 @@ install_basic_files () {
     mkdir -p /usr/local/sbin
     cp /overlay/usr/local/sbin/mininas* /usr/local/sbin
     echo "done"
+
+
 }
 
 #
@@ -135,6 +137,7 @@ install_basic_commands () {
     # id : coreutils (which is already installed)
     # vim, tree (for convenience)
     apt-get -y install members libc-bin coreutils vim tree initramfs-tools
+    apt-get -y -t sid systemd
     echo "done"
 }
 

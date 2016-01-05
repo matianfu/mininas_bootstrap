@@ -1,0 +1,46 @@
+#!/bin/bash
+
+#
+# currently only /mnt/winsun is supported
+# 
+
+WINSUN=/run/mininas/mountpoints/mnt-winsun
+UNITFILE=/lib/systemd/system/mnt-winsun.mount
+
+mkdir -p $WINSUN
+rm -rf $WINSUN/*
+
+#
+# enabled
+#
+TEMP=$( systemctl is-enabled mnt-winsun.mount )
+
+if [ "$TEMP" = "enabled" ]; then
+    ENABLED=1
+else
+    ENABLED=0
+fi
+
+#
+# autostart
+#
+if grep -P "WantedBy *= *multi-user[.]target" /lib/systemd/system/mnt-winsun.mount; then
+    AUTOSTART=1
+else
+    AUTOSTART=0
+fi
+
+#
+# what, where, type
+#
+WHAT=$(cat $UNITFILE | grep -P "^What *=" | sed -n -e "s/^What *= *//p")
+WHERE=$(cat $UNITFILE | grep -P "^Where *=" | sed -n -e "s/^Where *= *//p")
+TYPE=$(cat $UNITFILE | grep -P "^Type *=" | sed -n -e "s/^Type *= *//p")
+
+echo "$ENABLED" > $WINSUN/enabled
+echo "$AUTOSTART" > $WINSUN/autostart
+echo "$WHAT" > $WINSUN/what
+echo "$WHERE" > $WINSUN/where
+echo "$TYPE" > $WINSUN/type
+
+

@@ -1,0 +1,11 @@
+[Unit]
+Description='/mnt/winsun/' mountpoint mount success action
+After=mnt-winsun.mount
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/mininas_dvm_refresh
+
+[Install]
+WantedBy=mnt-winsun.mount
+ 

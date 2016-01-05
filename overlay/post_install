@@ -2,10 +2,11 @@
 
 source /overlay/__post_install
 
-prepare_layout
-install_basic_files
 config_apt
 install_basic_commands
+
+prepare_layout
+install_basic_files
 install_samba
 create_users_and_groups
 

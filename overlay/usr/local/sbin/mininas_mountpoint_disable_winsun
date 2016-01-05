@@ -1,0 +1,8 @@
+#!/bin/bash
+
+systemctl disable mnt-winsun.mount
+
+mininas_mountpoint_probe
+mininas_mountpoint_usage
+
+

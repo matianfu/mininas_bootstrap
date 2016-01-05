@@ -1,0 +1,18 @@
+#!/bin/bash
+
+#
+# This function update volume usage info in volume registry
+#
+# There are two different information source for usage, one from
+# btrfs filesystem show, the other form btrfs filesystem usage
+# 
+# They are not the same. show has no mode info, a brief summary
+# on device usage, include individual device size and used (allocated) 
+# size. 'show' can be done when device is not mounted.
+#
+# 'usage' has detailed but also frustrating info about everything.
+# usage can only be used when volume is mounted
+#
+
+
+
