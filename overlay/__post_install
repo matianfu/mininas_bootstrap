@@ -383,8 +383,8 @@ EOF
 
     mysql -u$MYSQL_ROOT -p$MYSQL_PASSWORD << EOF
         use mininas;
-        insert into mini_syssetting (uploadrootpath,samba,ftp) value ("/mnt/",0,0);
-        insert into mini_user (UserName,Password,realname,email) value ("admin","123456","winsun","sdfawef@assd.net");
+        insert into mini_syssetting (uploadrootpath,samba,ftp) value ("/mnt/winsun/",0,0);
+        insert into mini_user (UserName,Password,realname,email) value ("admin","123456","winsun","marketing@winsuntech.cn");
         insert into mini_ntpinfo (address,port,refreshtime) value ("202.112.10.36",123,3600);
 EOF
 

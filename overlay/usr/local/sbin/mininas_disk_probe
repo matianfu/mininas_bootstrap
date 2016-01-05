@@ -4,6 +4,9 @@ CHASSIS_PATH=/etc/mininas/chassis/static
 
 ATA_COUNT=$(ls -1 $CHASSIS_PATH/ata | wc -l)
 
+rm -rf /run/mininas/chassis
+mkdir -p /run/mininas/chassis
+
 for i in $(seq 1 $ATA_COUNT); do
 
     # create runtime path for ata slot
@@ -14,13 +17,13 @@ for i in $(seq 1 $ATA_COUNT); do
     
     if [ ! -z "$RESULT" ]; then
 
-        DEVICE_FILE="${RESULT##*/}"
+        DEVPATH="/dev/${RESULT##*/}"
 
         # create runtime device file for ata slot
-        echo "$DEVICE_FILE" > $RUN_CHASSIS_PATH/device_file
+        echo "$DEVPATH" > $RUN_CHASSIS_PATH/path
 
         # crawl
-        UDEVRESULT=$(udevadm info /dev/$DEVICE_FILE | grep "^E: " | sed "s/^E: //")
+        UDEVRESULT=$(udevadm info $DEVPATH | grep "^E: " | sed "s/^E: //")
         
         # construct associate array
         declare -A ARRAY
