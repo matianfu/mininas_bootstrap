@@ -1,6 +1,0 @@
-#!/bin/bash
-
-systemctl enable mnt-winsun
-
-mininas_mountpoint_probe
-mininas_mountpoint_usage

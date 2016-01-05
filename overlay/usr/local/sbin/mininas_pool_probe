@@ -4,7 +4,7 @@
 # currently only /mnt/winsun is supported
 # 
 
-WINSUN=/run/mininas/mountpoints/mnt-winsun
+WINSUN=/run/mininas/dvm/pools/1
 UNITFILE=/lib/systemd/system/mnt-winsun.mount
 
 mkdir -p $WINSUN
@@ -33,14 +33,28 @@ fi
 #
 # what, where, type
 #
-WHAT=$(cat $UNITFILE | grep -P "^What *=" | sed -n -e "s/^What *= *//p")
+WHAT=$(cat $UNITFILE | grep -P "^What *=" | sed "s/^What *= *UUID=//")
 WHERE=$(cat $UNITFILE | grep -P "^Where *=" | sed -n -e "s/^Where *= *//p")
 TYPE=$(cat $UNITFILE | grep -P "^Type *=" | sed -n -e "s/^Type *= *//p")
 
 echo "$ENABLED" > $WINSUN/enabled
 echo "$AUTOSTART" > $WINSUN/autostart
-echo "$WHAT" > $WINSUN/what
-echo "$WHERE" > $WINSUN/where
+
+if [ ! -z "$WHAT" ]; then
+
+    echo "$WHAT" > $WINSUN/uuid
+
+    if ls -1 /run/mininas/dvm/volumes | grep "$WHAT"; then
+        ln -s /run/mininas/dvm/volumes/$WHAT $WINSUN/volume
+    fi
+fi
+
+echo "$WHERE" > $WINSUN/mountpoint
+ln -s $WHERE $WINSUN/root
+
 echo "$TYPE" > $WINSUN/type
+
+
+
 
 

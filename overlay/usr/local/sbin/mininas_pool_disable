@@ -2,7 +2,7 @@
 
 systemctl disable mnt-winsun.mount
 
-mininas_mountpoint_probe
-mininas_mountpoint_usage
+mininas_pool_probe
+mininas_pool_usage
 
 

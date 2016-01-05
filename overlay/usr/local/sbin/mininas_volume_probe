@@ -33,7 +33,7 @@ MISSING_SET=
 
 build_volume_registry () {
 
-    local RUN_VOLUME_PATH=/run/mininas/volumes/$UUID
+    local RUN_VOLUME_PATH=/run/mininas/dvm/volumes/$UUID
     local READY_PATH=$RUN_VOLUME_PATH/ready
     local BYDEVID_PATH=$RUN_VOLUME_PATH/ready-by-devid
     local MISSING_PATH=$RUN_VOLUME_PATH/missing
@@ -51,30 +51,31 @@ build_volume_registry () {
     fi
 
     echo "$TOTAL" > $RUN_VOLUME_PATH/total
+    echo "$UUID" > $RUN_VOLUME_PATH/uuid
 
     for devid in $READY_SET; do
 
-        echo "DEBUG: devid is $devid"
+        # echo "DEBUG: devid is $devid"
 
         DEVPATH=$(grep -P "\tdevid +${devid} size" $O_BUFFER | awk '{print $8}')
-        echo "DEBUG: DEVPATH is $DEVPATH"
+        # echo "DEBUG: DEVPATH is $DEVPATH"
 
-        echo "DEBUG: Begin slot loop"
-        for slot in $(ls -1 /run/mininas/chassis); do
+        # echo "DEBUG: Begin slot loop"
+        for slot in $(ls -1 /run/mininas/dvm/chassis); do
 
-            echo "slot is $slot"
-            TEMP=$(cat /run/mininas/chassis/$slot/path)
-            echo "TEMP is $TEMP"
-            echo "DEVPATH is $DEVPATH"
+            # echo "slot is $slot"
+            TEMP=$(cat /run/mininas/dvm/chassis/$slot/path)
+            # echo "TEMP is $TEMP"
+            # echo "DEVPATH is $DEVPATH"
 
             if [ "$TEMP" = "$DEVPATH" ]; then
 
                 SLOT_PATH=$READY_PATH/$slot
-
+                # echo "SLOT_PATH: $SLOTPATH"
                 #
                 # symlink to chassis slot
                 # 
-                ln -s /run/mininas/chassis/$slot $SLOT_PATH
+                ln -s /run/mininas/dvm/chassis/$slot $SLOT_PATH
 
                 #
                 # decorating chassis slot, this is better than creating own
@@ -86,7 +87,7 @@ build_volume_registry () {
 
             fi
         done
-        echo "DEBUG: End slot loop"
+        # echo "DEBUG: End slot loop"
 
     done
 
@@ -98,7 +99,7 @@ build_volume_registry () {
     done
 
     if [ ! -z "$DEBUG" ]; then 
-        tree /run/mininas/volumes/$UUID
+        tree /run/mininas/dvm/volumes/$UUID
     fi
 
     return 0
@@ -159,8 +160,8 @@ parse_btrfs_filesystem_show () {
 #
 # make and clean volumes folder
 #
-mkdir -p /run/mininas/volumes 
-rm -rf /run/mininas/volumes/*
+mkdir -p /run/mininas/dvm/volumes 
+rm -rf /run/mininas/dvm/volumes/*
 
 #
 # prepare output buffer file
@@ -171,7 +172,7 @@ O_BUFFER=/run/mininas/tmp/volume_probe_buffer
 #
 # probe disk first
 #
-mininas_disk_probe
+# mininas_disk_probe
 
 #
 # retrieve all btrfs uuids

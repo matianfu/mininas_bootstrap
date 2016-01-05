@@ -4,13 +4,13 @@ CHASSIS_PATH=/etc/mininas/chassis/static
 
 ATA_COUNT=$(ls -1 $CHASSIS_PATH/ata | wc -l)
 
-rm -rf /run/mininas/chassis
-mkdir -p /run/mininas/chassis
+rm -rf /run/mininas/dvm/chassis
+mkdir -p /run/mininas/dvm/chassis
 
 for i in $(seq 1 $ATA_COUNT); do
 
     # create runtime path for ata slot
-    RUN_CHASSIS_PATH=/run/mininas/chassis/$i
+    RUN_CHASSIS_PATH=/run/mininas/dvm/chassis/$i
     mkdir -p $RUN_CHASSIS_PATH
 
     RESULT=$(find /sys/$(cat $CHASSIS_PATH/ata/$i) -name sd[a-z])
@@ -44,7 +44,7 @@ for i in $(seq 1 $ATA_COUNT); do
             DISK_IDENTITY="${ARRAY[id_model]}_${ARRAY[id_serial_short]}" 
             # echo "$DISK_IDENTITY" > $RUN_CHASSIS_PATH/disk
 
-            DISK_IDENTITY_PATH=/etc/mininas/data/disks/$DISK_IDENTITY
+            DISK_IDENTITY_PATH=/etc/mininas/data/dvm/disks/$DISK_IDENTITY
 
             if [ ! -d $DISK_IDENTITY_PATH ]; then
                 mkdir -p $DISK_IDENTITY_PATH

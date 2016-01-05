@@ -1,0 +1,6 @@
+#!/bin/bash
+
+systemctl enable mnt-winsun
+
+mininas_pool_probe
+mininas_pool_usage

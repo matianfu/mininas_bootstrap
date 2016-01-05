@@ -14,5 +14,69 @@
 # usage can only be used when volume is mounted
 #
 
+do_usage () {
+
+    OBUFFER=$( btrfs filesystem usage $MOUNTPOINT )
+
+    # echo "$OBUFFER" 
+    # echo "$OBUFFER" | grep -P "^System," 
+    # echo "$OBUFFER" | grep -P "^System," | sed "s/:.*//" 
+    # echo "$OBUFFER" | grep -P "^System," | sed "s/:.*//" | sed "s/System,//"
+
+    SYSTEM=$( echo "$OBUFFER" | grep -P "^System," | sed "s/:.*//" | sed "s/System,//" )
+    META=$( echo "$OBUFFER" | grep -P "^Metadata," | sed "s/:.*//" | sed "s/Metadata,//" )
+    DATA=$( echo "$OBUFFER" | grep -P "^Data," | sed "s/:.*//" | sed "s/Data,//" )
+
+    USAGE=/run/mininas/dvm/volumes/$UUID/usage
+    mkdir -p $USAGE
+
+    echo "$SYSTEM" > $USAGE/systemdata
+    echo "$META" > $USAGE/metadata
+    echo "$DATA" > $USAGE/data
+}
+
+TMPMOUNT=/run/mininas/tmp/tmpmount
+
+mkdir -p $TMPMOUNT
+
+for uuid in $( ls -1 /run/mininas/dvm/volumes ); do
+
+    VOLPATH=/run/mininas/dvm/volumes/$uuid
+    
+    if [ -f $VOLPATH/mountpoint ]; then
+
+        # volume mounted
+        UUID=$uuid
+        MOUNTPOINT=$(cat $VOLPATH/mountpoint)
+        do_usage
+        continue
+
+    else
+        # volume not mounted
+        STATE=$( cat $VOLPATH/state )
+
+        if [ "$STATE" = "ready" ]; then
+            
+            # try mount
+            mount -o ro UUID=$uuid $TMPMOUNT
+
+            if [ "$?" -eq 0 ]; then                
+                # mount success
+                UUID=$uuid
+                MOUNTPOINT=$TMPMOUNT
+                do_usage
+                umount $TMPMOUNT
+                
+            else
+                # mount fail, do nothing
+                :
+            fi
+        fi
+    fi        
+done
+
+rm -rf $TMPMOUNT
+
+
 
 
