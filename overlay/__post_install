@@ -85,6 +85,7 @@ prepare_layout() {
     mkdir -p /etc/mininas/data/configs
     mkdir -p /etc/mininas/data/disks
     mkdir -p /etc/mininas/data/volumes
+    mkdir -p /etc/mininas/data/qqiot
     echo "done"
 }
 
@@ -497,6 +498,7 @@ install_qqiot() {
 	
 	highlight "install service public key"
 	local FILE="/etc/mininas/data/qqiot/170001154.pem"
+	overlay_file $FILE
 	chmod 400 $FILE
 	
 	highligt "install qqiot service "
