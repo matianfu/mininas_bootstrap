@@ -41,7 +41,7 @@ fi
 #
 # TODO should we do it now?
 #
-mininas_disk_probe
+# mininas_disk_probe
 
 #
 # sort and undupe
@@ -124,13 +124,13 @@ fi
 
 if [ "$?" -ne 0 ]; then 
     echo "mkfs.btrfs failed"
+    mininas_pool_refresh
     exit 1
 fi
 
 #
 #
-#
-mininas_disk_probe
+mininas_pool_refresh
 
 #
 # retrieve all UUIDs from btrfs fi show
@@ -170,5 +170,26 @@ fi
 echo "---"
 echo "$UUID"
 echo "---"
+
+mininas_pool_set_volume 1 $UUID
+mininas_pool_enable 1
+
+systemctl start mnt-winsun.mount
+
+sleep 0.3
+
+# this will be done in service
+mininas_pool_refresh
+
+mininas_pool_snapshot_volume 1
+
+
+
+
+
+
+
+
+
 
 

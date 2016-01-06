@@ -1,0 +1,21 @@
+#!/bin/bash
+
+POOLID=1
+
+VOLUME=/run/mininas/dvm/pools/${POOLID}/volume
+
+SNAPSHOT=/etc/mininas/data/dvm/pools/${POOLID}/snapshot
+SWAP=/etc/mininas/data/dvm/pools/${POOLID}/.snapshot.swp
+
+mkdir -p $SWAP
+rm -rf $SWAP/*
+
+cp -rL $VOLUME/* $SWAP
+rm -rf $SNAPSHOT
+mv $SWAP $SNAPSHOT 
+
+
+
+
+
+
