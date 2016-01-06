@@ -17,6 +17,7 @@
    map to guest = %%SMB_MAP_TO_GUEST%%
    security = user
    guest account = nobody
+   browse list = yes
 
 [homes]
    comment = Home Directory

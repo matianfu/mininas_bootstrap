@@ -1,15 +1,17 @@
 {
 	"SMB_WORKGROUP":"WORKGROUP",
 	"SMB_NETBIOS_NAME":"WINSUN MININAS",
-	"SMB_MAP_TO_USER":"never",
+	"SMB_MAP_TO_GUEST":"never",
 	"SMB_SECURITY":"user",
-
+	"SMB_OPTION":"0",
 	"share":
 	[
 		{
 			"SMB_FOLDER_NAME":"",
 			"SMB_COMMENT":"",
 			"SMB_FOLDER_PATH":""
+			"SMB_AVAILABLE":""
+			"SMB_SID":""
 		}
 	]
 }
