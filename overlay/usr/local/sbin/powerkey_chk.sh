@@ -14,6 +14,7 @@ powerflgcnt=0
 poweroncnt=0
 rebootcnt=0
 echo "power key beign"
+echo PWR_LED 1 > /proc/BOARD_io 
 while true 
 do
 
