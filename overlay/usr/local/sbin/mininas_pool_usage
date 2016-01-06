@@ -47,7 +47,7 @@ fi
 #
 # 
 #
-if mount | grep "on /mnt/winsun type"; then
+if mount | grep "on /mnt/1 type"; then
 
     echo "1" > $WINSUN/mounted
 
@@ -56,7 +56,7 @@ if mount | grep "on /mnt/winsun type"; then
         if [ "$VOLUME_UUID" = "${vuuid}" ]; then
             
             # echo "1" > ${VOLUMES}/${VOLUME_UUID}/mounted
-            echo "/mnt/winsun" > ${VOLUMES}/${VOLUME_UUID}/mountpoint
+            echo "/mnt/1" > ${VOLUMES}/${VOLUME_UUID}/mountpoint
         
             for slot in $(ls ${VOLUMES}/${VOLUME_UUID}/ready); do
                 echo "1" > ${VOLUMES}/${VOLUME_UUID}/ready/${slot}/mounted

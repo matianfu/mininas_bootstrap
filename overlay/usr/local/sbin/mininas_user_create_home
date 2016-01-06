@@ -21,9 +21,9 @@ TMPPATH="/run/tmpABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"
 getent passwd $USERNAME
 exit_ne 0 10 "username does NOT exist"
 
-# path must be subfolder for /mnt/winsun/
-echo "$HOMEPATH" | grep -e ^/mnt/winsun/
-exit_ne 0 11 "path is not sub-folder of /mnt/winsun/"
+# path must be subfolder for /mnt/1/
+echo "$HOMEPATH" | grep -e ^/mnt/1/
+exit_ne 0 11 "path is not sub-folder of /mnt/1/"
 
 # test path name
 rm -rf $TMPPATH

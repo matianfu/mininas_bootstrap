@@ -201,11 +201,11 @@ create_users_and_groups () {
     # create admin without home
     mininas_user_create admin 123456
 
-    # /mnt/winsun is owned by admin:admin
-    highlight "change /mnt/winsun to admin:admin 775"
-    mkdir -p /mnt/winsun
-    chown admin:admin /mnt/winsun
-    chmod 775 /mnt/winsun
+    # /mnt/1~4/ is owned by admin:admin
+    highlight "change /mnt/1~4/ to admin:admin 775"
+    mkdir -p /mnt/1 /mnt/2 /mnt/3 /mnt/4
+    chown admin:admin /mnt/1 /mnt/2 /mnt/3 /mnt/4
+    chmod 775 /mnt/1 /mnt/2 /mnt/3 /mnt/4
 
     # no matter if thunder installed, the uid is pre-allocated
     highlight "create thunder as uid $THUNDER_UID"
@@ -410,7 +410,7 @@ EOF
 
     mysql -u$MYSQL_ROOT -p$MYSQL_PASSWORD << EOF
         use mininas;
-        insert into mini_syssetting (uploadrootpath,samba,ftp) value ("/mnt/winsun/",0,0);
+        insert into mini_syssetting (uploadrootpath,samba,ftp) value ("/mnt/1/",0,0);
         insert into mini_user (UserName,Password,realname,email) value ("admin","123456","winsun","marketing@winsuntech.cn");
         insert into mini_ntpinfo (address,port,refreshtime) value ("202.112.10.36",123,3600);
 EOF
@@ -528,6 +528,7 @@ install_netatalk() {
 
     echo "done"
 }
+
 install_qqiot() {
 	banner "install qqiot"
 	highlight "install bin mininasqqiot"
@@ -551,6 +552,7 @@ install_qqiot() {
 	install_service qqiot
 	enable_service qqiot
 }
+
 install_kernel() {
 
     banner "install kernel"
@@ -566,6 +568,37 @@ install_kernel() {
     echo "console=tty0 console=ttyS0,115200 root=/dev/mmcblk0p1 rootwait" > /boot/cmdline
     echo "done"
 }
+
+enable_systemd_network()
+{
+
+    banner "enable systemd network"
+
+    highlight "enable network & dns service"
+    systemctl enable systemd-networkd
+    systemctl enable systemd-resolved.service
+    echo "done"
+
+    
+    highlight "create 20-dhcp.network"
+    touch /etc/systemd/network/20-dhcp.network
+    echo "[Match]" > /etc/systemd/network/20-dhcp.network
+    echo "        Name=eth0" >> /etc/systemd/network/20-dhcp.network
+    echo "[Network]" >> /etc/systemd/network/20-dhcp.network
+    echo "        DHCP=yes" >> /etc/systemd/network/20-dhcp.network
+    echo "done"
+
+    highlight "modify resolved.conf"
+    echo "[Resolve]" > /etc/systemd/resolved.conf
+    echo "        DNS=202.96.209.133" >> /etc/systemd/resolved.conf
+    echo "        DNS=202.96.209.5" >> /etc/systemd/resolved.conf
+    echo "done"
+
+    highlight "create ln file 'resolv.conf'"
+    ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
+    echo "done"
+}
+
 
 do_cleanup() {
 

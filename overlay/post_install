@@ -27,6 +27,7 @@ install_dlna
 install_qqiot
 install_netatalk
 install_kernel
+enable_systemd_network
 do_cleanup 
 
 
