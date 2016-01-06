@@ -495,9 +495,10 @@ install_qqiot() {
 	overlay_file $FILE
 	local FILE="/usr/local/lib/libtxdevicesdk.so"
 	overlay_file $FILE
-	
+	ldconfig
+
 	highlight "install service public key"
-	local FILE="/etc/mininas/data/qqiot/170001154.pem"
+	local FILE="/etc/mininas/data/qqiot/1700001154.pem"
 	overlay_file $FILE
 	chmod 400 $FILE
 	
