@@ -1,9 +1,8 @@
 #!/bin/bash
 
-DEBUG=
 
 LABEL="winsun"
-DATAMODE=
+DATAMODE="single"
 POOLID=1
 ARGS_SORTED=
 
@@ -38,6 +37,13 @@ shift $((OPTIND -1))
 
 if [ -z "$1" ]; then
     echo "provide disk slot numbers please"
+    exit 1
+fi
+
+if printf "raid0\nraid1\nraid5\nraid6\nraid10\nsingle\n" | grep "^$DATAMODE$"; then
+    :
+else
+    echo "invalid datemode $DATAMODE"
     exit 1
 fi
 
