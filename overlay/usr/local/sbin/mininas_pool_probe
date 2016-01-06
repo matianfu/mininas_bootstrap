@@ -4,17 +4,18 @@
 # currently only /mnt/1 is supported
 # 
 
-WINSUN=/run/mininas/dvm/pools/1
+POOLPATH=/run/mininas/dvm/pools/1
 UNITFILE=/lib/systemd/system/mnt-1.mount
 
-mkdir -p $WINSUN
-rm -rf $WINSUN/*
+source /usr/local/sbin/mininas_dvm
+
+mkdir -p $POOLPATH
+rm -rf $POOLPATH/*
 
 #
 # enabled
 #
 TEMP=$( systemctl is-enabled mnt-1.mount )
-
 if [ "$TEMP" = "enabled" ]; then
     ENABLED=1
 else
@@ -24,7 +25,7 @@ fi
 #
 # autostart
 #
-if grep -P "WantedBy *= *multi-user[.]target" /lib/systemd/system/mnt-1.mount; then
+if grep -P "WantedBy *= *multi-user[.]target" /lib/systemd/system/mnt-1.mount > /dev/null ; then
     AUTOSTART=1
 else
     AUTOSTART=0
@@ -33,26 +34,25 @@ fi
 #
 # what, where, type
 #
-WHAT=$(cat $UNITFILE | grep -P "^What *=" | sed "s/^What *= *UUID=//")
+WHAT=$(cat $UNITFILE | grep -P "^What *=" | sed "s/^What *= *//")
 WHERE=$(cat $UNITFILE | grep -P "^Where *=" | sed -n -e "s/^Where *= *//p")
 TYPE=$(cat $UNITFILE | grep -P "^Type *=" | sed -n -e "s/^Type *= *//p")
 
-echo "$ENABLED" > $WINSUN/enabled
-echo "$AUTOSTART" > $WINSUN/autostart
+echo "$ENABLED" > $POOLPATH/enabled
+echo "$AUTOSTART" > $POOLPATH/autostart
 
 if [ ! -z "$WHAT" ]; then
 
-    echo "$WHAT" > $WINSUN/uuid
+    UUID=$( echo "$WHAT" | sed "s/^UUID=//" )
+    echo "$UUID" > $POOLPATH/uuid
 
-    if ls -1 /run/mininas/dvm/volumes | grep "$WHAT"; then
-        ln -s /run/mininas/dvm/volumes/$WHAT $WINSUN/volume
+    if ls -1 $R_VOLUMES | grep "$UUID" > /dev/null ; then
+        ln -s $R_VOLUMES/$UUID $POOLPATH/volume
     fi
 fi
 
-echo "$WHERE" > $WINSUN/mountpoint
-ln -s $WHERE $WINSUN/root
-
-echo "$TYPE" > $WINSUN/type
+echo "$WHERE" > $POOLPATH/mountpoint
+echo "$TYPE" > $POOLPATH/type
 
 
 

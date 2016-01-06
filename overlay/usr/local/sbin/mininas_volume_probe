@@ -139,8 +139,10 @@ parse_btrfs_filesystem_show () {
 
     #
     # extract missing set
+    # BUG: two expression ORed. None of them include all
+    # also, may be dup.
     #
-    MISSING_SET=$(grep -P "warning devid \d+ not found already" $O_BUFFER | awk '{ print $3 }')
+    MISSING_SET=$(grep -P "warning devid \d+ not found already|warning, device \d+ is missing" $O_BUFFER | awk '{ print $3 }' | sort -u )
 
     if [ ! -z "$DEBUG" ]; then echo "MISSING DEVID: $MISSING_SET"; fi
 

@@ -43,7 +43,7 @@ fi
 if printf "raid0\nraid1\nraid5\nraid6\nraid10\nsingle\n" | grep "^$DATAMODE$"; then
     :
 else
-    echo "invalid datemode $DATAMODE"
+    echo "invalid datamode $DATAMODE"
     exit 1
 fi
 
@@ -180,7 +180,7 @@ mv $SWAPFILE $UNITFILE
 # daemon reload
 #
 systemctl daemon-reload
-if ["$?" -ne 0 ]; then
+if [ "$?" -ne 0 ]; then
     echo "systemd daemon-reload failed. please reboot."
     mininas_pool_refresh
     exit 1
@@ -212,8 +212,11 @@ if [ "$MOUNTED" -eq 1 ]; then
     mininas_pool_snapshot_volume $POOLID
     echo "successfully made volume for pool $POOLID and mounted."
     exit 0
-elif 
+elif [ "$MOUNTED" -eq 0 ]; then
     echo "successfully made volume for pool $POOLID, but failed to start systemd mount. please reboot"
+    exit 1
+else
+    echo "dvm registry error, please reboot and retry."
     exit 1
 fi
 
