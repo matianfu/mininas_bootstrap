@@ -2,7 +2,6 @@
 	"SMB_WORKGROUP":"WORKGROUP",
 	"SMB_NETBIOS_NAME":"WINSUN MININAS",
 	"SMB_MAP_TO_GUEST":"never",
-	"SMB_SECURITY":"user",
 	"share":
 	[
 		{
