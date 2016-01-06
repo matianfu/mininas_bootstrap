@@ -9,8 +9,8 @@
 		{
 			"SMB_FOLDER_NAME":"",
 			"SMB_COMMENT":"",
-			"SMB_FOLDER_PATH":""
-			"SMB_AVAILABLE":""
+			"SMB_FOLDER_PATH":"",
+			"SMB_AVAILABLE":"",
 			"SMB_SID":""
 		}
 	]

@@ -3,7 +3,7 @@
 #
 # Can only be set when mountpoint unmounted
 #
-if mount | grep "on /mnt/winsun type"; then
+if mount | grep "on /mnt/1 type"; then
     echo "please umount first, or disable mountpoint and reboot."
     exit 1
 fi
