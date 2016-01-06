@@ -37,6 +37,24 @@ echo $DASH
 mount -t ext4 /dev/mmcblk0p2 /mmc
 # tar xvf /media/mmcblk0p2.tar -C /mmc
 cat /media/mmcblk0p2.tar | pv | tar xf - -C /mmc
+echo ""
+echo $DASH
+echo "install qqiot guid and licence"
+echo $DASH
+
+dd if=/dev/mtdblock0  of=serialfile bs=1 skip=1697760 count=11
+SERIAL=`cat serialfile`
+echo "SERIAL:$SERIAL"
+
+if [ -e /mmc/ping/qqiot ] ; then 
+cp `find /media/qqiotlicence/licence/ -name G*${SERIAL}*`  /mmc/ping/qqiot/GUID_file.txt
+cp `find /media/qqiotlicence/licence/ -name l*${SERIAL}*`  /mmc/ping/qqiot/licence.sign.file.txt
+fi
+
+if [ -e /mmc/pong/qqiot ] ; then
+cp `find /media/qqiotlicence/licence/ -name G*${SERIAL}*`  /mmc/pong/qqiot/GUID_file.txt
+cp `find /media/qqiotlicence/licence/ -name l*${SERIAL}*`  /mmc/pong/qqiot/licence.sign.file.txt
+fi
 umount /mmc
 echo "done"
 
