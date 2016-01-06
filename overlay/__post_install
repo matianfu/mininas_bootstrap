@@ -201,11 +201,11 @@ create_users_and_groups () {
     # create admin without home
     mininas_user_create admin 123456
 
-    # /mnt/winsun is owned by admin:admin
-    highlight "change /mnt/winsun to admin:admin 775"
-    mkdir -p /mnt/winsun
-    chown admin:admin /mnt/winsun
-    chmod 775 /mnt/winsun
+    # /mnt/1~4/ is owned by admin:admin
+    highlight "change /mnt/1~4/ to admin:admin 775"
+    mkdir -p /mnt/1 /mnt/2 /mnt/3 /mnt/4
+    chown admin:admin /mnt/1 /mnt/2 /mnt/3 /mnt/4
+    chmod 775 /mnt/1 /mnt/2 /mnt/3 /mnt/4
 
     # no matter if thunder installed, the uid is pre-allocated
     highlight "create thunder as uid $THUNDER_UID"
@@ -406,7 +406,7 @@ EOF
 
     mysql -u$MYSQL_ROOT -p$MYSQL_PASSWORD << EOF
         use mininas;
-        insert into mini_syssetting (uploadrootpath,samba,ftp) value ("/mnt/winsun/",0,0);
+        insert into mini_syssetting (uploadrootpath,samba,ftp) value ("/mnt/1/",0,0);
         insert into mini_user (UserName,Password,realname,email) value ("admin","123456","winsun","marketing@winsuntech.cn");
         insert into mini_ntpinfo (address,port,refreshtime) value ("202.112.10.36",123,3600);
 EOF

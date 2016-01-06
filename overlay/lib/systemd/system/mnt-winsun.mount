@@ -1,10 +1,10 @@
 [Unit]
-Description='/mnt/winsun' Mountpoint
+Description='/mnt/1' Mountpoint
 OnFailure=mnt-winsun-mount-failure.service
 
 [Mount]
 What=
-Where=/mnt/winsun
+Where=/mnt/1
 Type=btrfs
 
 [Install]

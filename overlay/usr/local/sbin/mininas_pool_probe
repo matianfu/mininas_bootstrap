@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# currently only /mnt/winsun is supported
+# currently only /mnt/1 is supported
 # 
 
 WINSUN=/run/mininas/dvm/pools/1

@@ -1,5 +1,5 @@
 [Unit]
-Description='/mnt/winsun/' mountpoint mount success action
+Description='/mnt/1/' mountpoint mount success action
 After=mnt-winsun.mount
 
 [Service]
