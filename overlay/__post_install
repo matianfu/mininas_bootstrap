@@ -427,7 +427,7 @@ EOF
     highlight "install disk-watcher service, automount-disk service"
     install_service disk-watcher
     enable_service disk-watcher
-    ech "done"
+    echo "done"
 
     highlight "install automount-disk service"
     install_service automount-disk 
@@ -548,7 +548,7 @@ install_qqiot() {
 	overlay_file $FILE
 	chmod 400 $FILE
 	
-	highligt "install qqiot service "
+	highlight "install qqiot service "
 	install_service qqiot
 	enable_service qqiot
 }
