@@ -1,0 +1,196 @@
+#!/bin/bash
+
+#
+# This script first probe all disks, then probe all btrfs volumes.
+# It creates and populates /run/disk/chassis and /run/disk/volumes
+# folder
+# 
+
+DEBUG=
+DASH=-------------------------------------------------
+
+while getopts ":d:" opt; do
+
+    case $opt in
+        
+        d) 
+            DEBUG="yes"
+            ;;
+        \?)
+            echo "invalid option: -$OPTARG"
+            exit 1
+            ;;
+    esac
+done
+
+#
+# globals 
+#
+UUID=
+TOTAL=
+READY_SET=
+MISSING_SET=
+
+build_volume_registry () {
+
+    local RUN_VOLUME_PATH=/run/mininas/dvm/volumes/$UUID
+    local READY_PATH=$RUN_VOLUME_PATH/ready
+    local BYDEVID_PATH=$RUN_VOLUME_PATH/ready-by-devid
+    local MISSING_PATH=$RUN_VOLUME_PATH/missing
+
+    rm -rf $RUN_VOLUME_PATH
+    mkdir -p $RUN_VOLUME_PATH
+    mkdir -p $READY_PATH
+    mkdir -p $BYDEVID_PATH
+    mkdir -p $MISSING_PATH
+
+    if [ -z "$MISSING_SET" ]; then
+        echo "ready" > $RUN_VOLUME_PATH/state
+    else
+        echo "missing" > $RUN_VOLUME_PATH/state
+    fi
+
+    echo "$TOTAL" > $RUN_VOLUME_PATH/total
+    echo "$UUID" > $RUN_VOLUME_PATH/uuid
+
+    for devid in $READY_SET; do
+
+        # echo "DEBUG: devid is $devid"
+
+        DEVPATH=$(grep -P "\tdevid +${devid} size" $O_BUFFER | awk '{print $8}')
+        # echo "DEBUG: DEVPATH is $DEVPATH"
+
+        # echo "DEBUG: Begin slot loop"
+        for slot in $(ls -1 /run/mininas/dvm/chassis); do
+
+            # echo "slot is $slot"
+            TEMP=$(cat /run/mininas/dvm/chassis/$slot/path)
+            # echo "TEMP is $TEMP"
+            # echo "DEVPATH is $DEVPATH"
+
+            if [ "$TEMP" = "$DEVPATH" ]; then
+
+                SLOT_PATH=$READY_PATH/$slot
+                # echo "SLOT_PATH: $SLOTPATH"
+                #
+                # symlink to chassis slot
+                # 
+                ln -s /run/mininas/dvm/chassis/$slot $SLOT_PATH
+
+                #
+                # decorating chassis slot, this is better than creating own
+                #
+                echo "$slot" > $BYDEVID_PATH/$devid
+                echo "$devid" > $SLOT_PATH/fs/btrfs_devid
+                echo $(grep -P "\tdevid +${devid} size" $O_BUFFER | awk '{print $4}') > $SLOT_PATH/fs/btrfs_dev_size
+                echo $(grep -P "\tdevid +${devid} size" $O_BUFFER | awk '{print $6}') > $SLOT_PATH/fs/btrfs_dev_used
+
+            fi
+        done
+        # echo "DEBUG: End slot loop"
+
+    done
+
+    for devid in $MISSING_SET; do
+        DEVID_PATH=$MISSING_PATH/$devid
+        # mkdir -p $DEVID_PATH
+        # echo "$devid" > $DEVID_PATH
+        touch $DEVID_PATH
+    done
+
+    if [ ! -z "$DEBUG" ]; then 
+        tree /run/mininas/dvm/volumes/$UUID
+    fi
+
+    return 0
+}
+
+parse_btrfs_filesystem_show () {
+
+    if [ ! -z "$DEBUG" ]; then
+        btrfs filesystem show $1
+        echo "$DASH"
+    fi
+
+    #
+    # issue command and redirect both stdout and stderr to buffer file
+    #
+    btrfs filesystem show $UUID > $O_BUFFER 2>&1
+    if [ "$?" -ne 0 ]; then
+        exit 1
+    fi
+
+    if [ ! -z "$DEBUG" ]; then
+        echo $DASH
+        cat $O_BUFFER
+        echo $DASH
+    fi
+
+    #
+    # extract device number
+    #
+    TOTAL=$(grep -P "\tTotal devices \d+ FS bytes" $O_BUFFER | awk '{ print $3 }')
+
+    if [ ! -z "$DEBUG" ]; then echo "TOTAL: $TOTAL"; fi
+
+    if [ -z "$TOTAL" ]; then
+        exit 1
+    fi
+
+    #
+    # extract missing set
+    #
+    MISSING_SET=$(grep -P "warning devid \d+ not found already" $O_BUFFER | awk '{ print $3 }')
+
+    if [ ! -z "$DEBUG" ]; then echo "MISSING DEVID: $MISSING_SET"; fi
+
+    #
+    # extract ready set
+    #
+    READY_SET=$(grep -P "\tdevid +\d+ size" $O_BUFFER | awk '{ print $2 }')
+
+    if [ ! -z "$DEBUG" ]; then 
+        echo "---"
+        echo "READY DEVID: 
+        $READY_SET";
+        echo "---" 
+    fi
+}
+
+#
+# make and clean volumes folder
+#
+mkdir -p /run/mininas/dvm/volumes 
+rm -rf /run/mininas/dvm/volumes/*
+
+#
+# prepare output buffer file
+#
+mkdir -p /run/mininas/tmp
+O_BUFFER=/run/mininas/tmp/volume_probe_buffer
+
+#
+# probe disk first
+#
+# mininas_disk_probe
+
+#
+# retrieve all btrfs uuids
+#
+UUID_SET=$(btrfs filesystem show 2>&1 | grep -P "^Label: " | sed -n -e 's/^.*uuid: //p')
+
+# 
+# for each volume, build registry
+#
+for uuid in $UUID_SET; do
+
+    UUID=$uuid
+    parse_btrfs_filesystem_show
+    build_volume_registry
+
+done
+
+rm -rf $O_BUFFER
+
+
+

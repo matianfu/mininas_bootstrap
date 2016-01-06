@@ -1,0 +1,11 @@
+[Unit]
+Description='/mnt/winsun' Mountpoint
+OnFailure=mnt-winsun-mount-failure.service
+
+[Mount]
+What=
+Where=/mnt/winsun
+Type=btrfs
+
+[Install]
+WantedBy=multi-user.target

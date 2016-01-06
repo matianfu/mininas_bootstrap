@@ -1,0 +1,8 @@
+#!/bin/bash
+
+systemctl disable mnt-winsun.mount
+
+mininas_pool_probe
+mininas_pool_usage
+
+
