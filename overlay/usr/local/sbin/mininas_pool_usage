@@ -1,0 +1,71 @@
+#!/bin/bash
+
+#
+# This script assumes that the disk and volume info are 
+# correct and up-to-date
+#
+# Also,the volume uuid in unit file must be correct and up-to-date, 
+# modifying uuid when volume is mounted is strictly forbidden.
+#
+WINSUN=/run/mininas/dvm/pools/1
+CHASSIS=/run/mininas/dvm/chassis
+VOLUMES=/run/mininas/dvm/volumes
+
+#
+# clear all slot mount state
+#
+for slot in $(ls -1 $CHASSIS -1); do
+    echo "0" > $CHASSIS/$slot/mounted
+done
+
+#
+# clear all volume mount state
+#
+for vuuid in $(ls -1 $VOLUMES); do
+    # not really useful
+    # echo "0" > $VOLUMES/$vuuid/mounted
+    rm -rf $VOLUMES/$vuuid/mountpoint
+done
+
+#
+# if there are no volume yet or the volume id is invalid
+# quit
+#
+VOLUME_UUID=$(cat $WINSUN/uuid)
+
+if [ -z "$VOLUME_UUID" ]; then
+    echo "no volume uuid found, exit"
+    exit 0
+fi
+
+if echo "$(ls -1 $VOLUMES)" | grep "$VOLUME_UUID"; then
+    :
+else
+    exit 0
+fi
+
+#
+# 
+#
+if mount | grep "on /mnt/winsun type"; then
+
+    echo "1" > $WINSUN/mounted
+
+    for vuuid in $(ls -1 $VOLUMES); do
+        
+        if [ "$VOLUME_UUID" = "${vuuid}" ]; then
+            
+            # echo "1" > ${VOLUMES}/${VOLUME_UUID}/mounted
+            echo "/mnt/winsun" > ${VOLUMES}/${VOLUME_UUID}/mountpoint
+        
+            for slot in $(ls ${VOLUMES}/${VOLUME_UUID}/ready); do
+                echo "1" > ${VOLUMES}/${VOLUME_UUID}/ready/${slot}/mounted
+            done
+        fi
+    done
+else
+    
+    echo "0" > $WINSUN/mounted
+fi
+
+

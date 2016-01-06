@@ -1,0 +1,13 @@
+[Unit]
+Description=System Startup Probe
+
+Before=mnt-winsun.mount
+Before=mininas.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/mininas_system_startup_probe
+
+[Install]
+WantedBy=multi-user.target
+
