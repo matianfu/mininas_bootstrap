@@ -425,10 +425,10 @@ EOF
     enable_service automount-disk
     echo "done"
 
-    highlight "install rename-hostname.service"
-    install_service rename-hostname
-    enable_service rename-hostname
-    echo "done"
+#    highlight "install rename-hostname.service"
+#    install_service rename-hostname
+#    enable_service rename-hostname
+#    echo "done"
 
 }
 
