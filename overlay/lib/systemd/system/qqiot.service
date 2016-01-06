@@ -1,9 +1,9 @@
 [Unit]
-Description=Powers and Keys Service
+Description=MiniNAS QQIOT Service
 
 [Service]
 Type=simple
-ExecStart=/usr/local/sbin/powerkey_chk.sh
+ExecStart=/usr/local/sbin/mininasqqiot
 Restart=on-failure
 
 [Install]
