@@ -132,6 +132,10 @@ install_basic_files () {
     overlay_file "/etc/mininas/data/configs/volume.json"    
     echo "done"
 
+    highlight "deploy mininas version"
+    overlay_file "/etc/mininas/version"    
+    echo "done"
+
     highlight "deploy mininas scripts"
     mkdir -p /usr/local/sbin
     cp /overlay/usr/local/sbin/mininas* /usr/local/sbin
