@@ -48,12 +48,43 @@ enable_service () {
 }
 
 #
+# apt source list, default, and proxy
+#
+config_apt () {
+
+    banner "configure apt sources"
+
+    overlay_file "/etc/apt/sources.list"
+    overlay_file "/etc/apt/apt.conf.d/70debconf"
+    
+    highlight "updating apt, please wait..."
+    apt-get update &> /dev/null
+    echo "done"
+}
+
+#
+# 
+#
+install_basic_commands () {
+
+    banner "install basic commands"
+    # members : members
+    # getent : libc-bin (which is already installed)
+    # id : coreutils (which is already installed)
+    # vim, tree (for convenience)
+    apt-get -y install members libc-bin coreutils vim tree initramfs-tools
+    apt-get -y -t sid systemd
+    echo "done"
+}
+
+
+#
 # prepare folders and links
 #
 prepare_layout() {
 
     #
-    #   
+    #  this path is not in PATH in chrooted environment 
     #
     export PATH=/usr/local/sbin:$PATH
 
@@ -83,8 +114,6 @@ prepare_layout() {
 
     highlight "make data/configs folder"
     mkdir -p /etc/mininas/data/configs
-    mkdir -p /etc/mininas/data/disks
-    mkdir -p /etc/mininas/data/volumes
     mkdir -p /etc/mininas/data/qqiot
     echo "done"
 }
@@ -107,35 +136,24 @@ install_basic_files () {
     highlight "deploy mininas scripts"
     mkdir -p /usr/local/sbin
     cp /overlay/usr/local/sbin/mininas* /usr/local/sbin
+    chmod a+x /usr/local/sbin/*
     echo "done"
-}
 
-#
-# apt source list, default, and proxy
-#
-config_apt () {
+    highlight "deploy dvm"
+    cp -r /overlay/etc/mininas/data/dvm /etc/mininas/data/
 
-    banner "configure apt sources"
-
-    overlay_file "/etc/apt/sources.list"
-    overlay_file "/etc/apt/apt.conf.d/70debconf"
-    
-    highlight "updating apt, please wait..."
-    apt-get update &> /dev/null
+    # disabled by default
+    overlay_file /lib/systemd/system/mnt-winsun.mount
+    # disabled by default
+    overlay_file /lib/systemd/system/mnt-winsun-mount-success.service
+    # static service
+    overlay_file /lib/systemd/system/mnt-winsun-mount-failure.service
     echo "done"
-}
 
-#
-# 
-#
-install_basic_commands () {
-
-    banner "install basic commands"
-    # members : members
-    # getent : libc-bin (which is already installed)
-    # id : coreutils (which is already installed)
-    # vim, tree (for convenience)
-    apt-get -y install members libc-bin coreutils vim tree initramfs-tools
+    highlight "deploy system service"
+    # enabled by default
+    install_service system_startup_probe
+    enable_service system_startup_probe
     echo "done"
 }
 

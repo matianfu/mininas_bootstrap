@@ -5,27 +5,33 @@ DEBUG="yes"
 LABEL="winsun"
 DATAMODE=
 
+echo "All: $@"
+
 #
 # -L label (optional)
 # -d data mode (optional)
 #
-while getopts ":L:d:" opt; do
+while getopts "d:L:" opt; do
 
     case $opt in
         L)
             LABEL="$OPTARG"
-            shift 2
             ;;
         d)
             DATAMODE="$OPTARG"
-            shift 2
             ;;
         \?)
-            echo "unrecognized option"
+            echo "invalid option: -$OPTARG"
             exit 1
-        ;;
+            ;;
+        :)
+            echo "invalid option: $OPTRAG requires an argument"
+            exit 1
+            ;;
     esac
 done
+
+shift $((OPTIND -1))
 
 if [ -z "$1" ]; then
     echo "provide disk slot numbers please"
@@ -38,20 +44,66 @@ fi
 mininas_disk_probe
 
 #
-# validate slot number
+# sort and undupe
 #
-for slot in $@ ; do
+ARGS_SORTED=$( (for arg in $@; do echo $arg; done) | sort -u | tr '\n' ' ' )
+
+if [ ! -z "$DEBUG" ]; then
+    echo "ARGS_SORTED: $ARGS_SORTED"
+fi
+
+#
+#  paranoid check and test if mounted
+#
+# for slot in $@ ; do
+for slot in $ARGS_SORTED; do
+
     if [ ! -d "/run/mininas/chassis/$slot" ]; then
-        echo "invalid slot number"
+        echo "invalid slot number $slot or corresponding chassis dir does not exist"
         exit 1
     fi
+
+    DEVPATH=$( cat /run/mininas/chassis/$slot/path )
+    if [ -z "$DEVPATH" ]; then
+        echo "chassis/$slot/path does not exist or file empty"
+        exit 1
+    fi
+
+    if echo "$DEVPATH" | grep -P "^/dev/sd[a-z]" > /dev/null ; then
+        echo "do nothing" > /dev/null
+    else 
+        echo "invalid content in chassis/$slot/path file"
+        exit 1
+    fi
+
+    if [ ! -z "$DEBUG" ]; then
+        echo "slot: $slot -> path: $DEVPATH"
+    fi
+
+    FSTYPE=$( cat /run/mininas/chassis/$slot/fs/id_fs_type )
+    if [ "$FSTYPE" = "btrfs" ]; then
+        btrfs device stats $DEVPATH > /dev/null 2>&1
+        if [ "$?" -ne 1 ]; then
+            echo "btrfs device $DEVPATH is mounted, please unmount first"
+            exit 1
+        fi
+    else
+        if mount | grep -P "^${DEVPATH} on"; then
+            if [ -z "$FSTYPE" ]; then
+                FSTYPE="(unknown fs)"
+            fi
+            echo "($FSTYPE device) $DEVPATH is mounted, please unmount first"
+            exit 1     
+        fi
+    fi
+ 
 done
 
 #
 # sort and remove duplicate, DEVPATH is a multiple line string, containing 
 # device file path each line (eg. /dev/sda)
 #
-DEVPATH=$( (for slot in $@; do echo $(cat /run/mininas/chassis/$slot/path); done) | sort -u )
+DEVPATH=$( (for slot in $ARGS_SORTED; do echo $(cat /run/mininas/chassis/$slot/path); done) | sort -u )
 DEVPATH_ONELINE=$(echo "$DEVPATH" | tr '\n' ' ')
 if [ ! -z "$DEBUG" ]; then
     echo "---"
@@ -75,34 +127,48 @@ if [ "$?" -ne 0 ]; then
     exit 1
 fi
 
+#
+#
+#
+mininas_disk_probe
+
+#
+# retrieve all UUIDs from btrfs fi show
+#
 UUID_SET=$(btrfs filesystem show 2>&1 | grep -P "^Label: " | sed -n -e 's/^.*uuid: //p')
 if [ -z "$UUID_SET" ]; then
     echo "no valid filesystem uuid found"
-    exit 2
+    exit 1
 fi
 
 if [ ! -z "$DEBUG" ]; then
-    echo "UUID_SET"
+    echo "$UUID_SET"
 fi
 
-exit 0
-
+#
+# retrieve uuid for which btrfs volume contains given disk set
+#
 UUID=
 for uuid in $UUID_SET ; do
 
     if [ -z "$uuid" ]; then continue; fi
 
-    device_files=$(btrfs filesystem show $uuid 2>&1 | grep -P "\tdevid +\d+ size" | awk ' { print $8 }' | sort)
+    devpath=$(btrfs filesystem show $uuid 2>&1 | grep -P "\tdevid +\d+ size" | awk ' { print $8 }' | sort)
 
-    if [[ "${DEVICE_FILES}" == "$device_files" ]]; then 
+    if [[ "$DEVPATH" == "$devpath" ]]; then 
         UUID="$uuid"
         break
     fi
 done
 
 if [ -z "$UUID" ]; then
-    exit 3
+    echo "cannot find proper uuid"
+    exit 1
 fi
 
+
+echo "---"
+echo "$UUID"
+echo "---"
 
 

@@ -1,0 +1,72 @@
+#!/bin/bash
+
+#
+# Can only be set when mountpoint unmounted
+#
+if mount | grep "on /mnt/winsun type"; then
+    echo "please umount first, or disable mountpoint and reboot."
+    exit 1
+fi
+
+POOLID=$1
+UUID=$2
+
+#
+# check arg
+#
+if [ -z "$POOLID" ] || [ -z "$UUID" ]; then
+    echo "usage: mininas_pool_set_volume"
+    exit 1
+fi
+
+#
+# check pool id
+#
+if ls -1 /run/mininas/dvm/pools | grep $POOLID > /dev/null ; then
+    # yes, pool id exist
+    :
+else 
+    echo "pool id $POOLID does not exist"
+    exit 1
+fi
+
+#
+# check uuid
+#
+if ls -1 /run/mininas/dvm/volumes | grep $UUID > /dev/null ; then
+    # yes, uuid exists
+    :
+else
+    echo "uuid $UUID does not exist"
+    exit 1
+fi
+
+#
+# modify unit file
+#
+LIBPATH=/lib/systemd/system/
+
+UNITNAME=$(cat /etc/mininas/data/dvm/pools/${POOLID}/unitname)
+UNITFILE=$LIBPATH/${UNITNAME}.mount
+SWAPFILE=$LIBPATH/.${UNITNAME}.mount.swp
+
+cat $UNITFILE | sed "s/^What.*/What=UUID=${UUID}/" > $SWAPFILE
+mv $SWAPFILE $UNITFILE
+
+#
+# daemon reload
+#
+systemctl daemon-reload
+
+#
+# update mountpoint registy
+#
+mininas_pool_probe
+mininas_pool_usage
+
+
+
+
+
+
+
