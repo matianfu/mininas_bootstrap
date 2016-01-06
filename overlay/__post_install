@@ -524,6 +524,7 @@ install_netatalk() {
 
     echo "done"
 }
+
 install_qqiot() {
 	banner "install qqiot"
 	highlight "install bin mininasqqiot"
@@ -547,6 +548,7 @@ install_qqiot() {
 	install_service qqiot
 	enable_service qqiot
 }
+
 install_kernel() {
 
     banner "install kernel"
@@ -562,6 +564,37 @@ install_kernel() {
     echo "console=tty0 console=ttyS0,115200 root=/dev/mmcblk0p1 rootwait" > /boot/cmdline
     echo "done"
 }
+
+enable_systemd_network()
+{
+
+    banner "enable systemd network"
+
+    highlight "enable network & dns service"
+    systemctl enable systemd-networkd
+    systemctl enable systemd-resolved.service
+    echo "done"
+
+    
+    highlight "create 20-dhcp.network"
+    touch /etc/systemd/network/20-dhcp.network
+    echo "[Match]" > /etc/systemd/network/20-dhcp.network
+    echo "        Name=eth0" >> /etc/systemd/network/20-dhcp.network
+    echo "[Network]" >> /etc/systemd/network/20-dhcp.network
+    echo "        DHCP=yes" >> /etc/systemd/network/20-dhcp.network
+    echo "done"
+
+    highlight "modify resolved.conf"
+    echo "[Resolve]" > /etc/systemd/resolved.conf
+    echo "        DNS=202.96.209.133" >> /etc/systemd/resolved.conf
+    echo "        DNS=202.96.209.5" >> /etc/systemd/resolved.conf
+    echo "done"
+
+    highlight "create ln file 'resolv.conf'"
+    ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
+    echo "done"
+}
+
 
 do_cleanup() {
 
