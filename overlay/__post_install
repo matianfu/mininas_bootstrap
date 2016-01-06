@@ -73,7 +73,7 @@ install_basic_commands () {
     # id : coreutils (which is already installed)
     # vim, tree (for convenience)
     apt-get -y install members libc-bin coreutils vim tree initramfs-tools
-    apt-get -y -t sid systemd
+    apt-get -y -t sid install systemd
     echo "done"
 }
 
@@ -374,9 +374,13 @@ install_python_packages () {
 
     highlight "install eyeD3"
     easy_install eyeD3
+    easy_install eyeD3
+    easy_install eyeD3
     echo "done"
 
     highlight "install apscheduler"
+    easy_install apscheduler
+    easy_install apscheduler
     easy_install apscheduler
     echo "done"
 }
