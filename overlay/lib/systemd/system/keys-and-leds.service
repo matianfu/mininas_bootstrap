@@ -2,7 +2,7 @@
 Description=Powers and Keys Service
 
 [Service]
-Type=forking
+Type=simple
 ExecStart=/usr/local/sbin/powerkey_chk.sh
 Restart=on-failure
 

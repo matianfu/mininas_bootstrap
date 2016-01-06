@@ -2,7 +2,7 @@
 Description=MiniNAS QQIOT Service
 
 [Service]
-Type=forking
+Type=simple
 ExecStart=/usr/local/sbin/mininasqqiot
 Restart=on-failure
 
