@@ -133,6 +133,10 @@ install_basic_files () {
     overlay_file "/etc/mininas/data/configs/volume.json"    
     echo "done"
 
+    highlight "deploy mininas version"
+    overlay_file "/etc/mininas/version"    
+    echo "done"
+
     highlight "deploy mininas scripts"
     mkdir -p /usr/local/sbin
     cp /overlay/usr/local/sbin/mininas* /usr/local/sbin
@@ -485,7 +489,7 @@ install_dlna () {
 install_netatalk() {
 
     banner "install netatalk"
-    echo "netatalk installer not implemented yet"
+    # echo "netatalk installer not implemented yet"
     # apt-get -y -t sid install netatalk
 
     # tar xzf /intall/netatalk-xxxx.tar.gz -C /
@@ -493,11 +497,24 @@ install_netatalk() {
     # tar czf netatalk.... -C /xx/staging .
 
     # install_service netatalk
+	highlight "install packages required, please wait..."
+	
+	apt-get -y install build-essential libevent-dev libssl-dev \
+		libgcrypt11-dev libkrb5-dev libpam0g-dev libwrap0-dev libdb-dev \
+		libtdb-dev libmysqlclient-dev avahi-daemon libavahi-client-dev \
+		libldap2-dev libcrack2-dev systemtap-sdt-dev libdbus-1-dev libdbus-glib-1-dev \
+		libglib2.0-dev tracker libtracker-sparql-1.0-dev libtracker-miner-1.0-dev  &> /dev/null
 
 	tar xzf /overlay/install/netatalk-3.1.8.tar.gz -C /
+	ldconfig
 	rm -rf /usr/local/var/netatalk
+    cp /overlay/etc/mininas/data/netatalk /etc/mininas/data -r
 	ln -s /etc/mininas/data/netatalk /usr/local/var
     enable_service netatalk
+    
+    highlight "put  json, and template files"
+    overlay_file "/etc/mininas/data/configs/afp.json"
+    cp -r /overlay/etc/mininas/templates/netatalk /etc/mininas/templates
 
     echo "done"
 }
