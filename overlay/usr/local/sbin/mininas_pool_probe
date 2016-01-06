@@ -5,7 +5,7 @@
 # 
 
 WINSUN=/run/mininas/dvm/pools/1
-UNITFILE=/lib/systemd/system/mnt-winsun.mount
+UNITFILE=/lib/systemd/system/mnt-1.mount
 
 mkdir -p $WINSUN
 rm -rf $WINSUN/*
@@ -13,7 +13,7 @@ rm -rf $WINSUN/*
 #
 # enabled
 #
-TEMP=$( systemctl is-enabled mnt-winsun.mount )
+TEMP=$( systemctl is-enabled mnt-1.mount )
 
 if [ "$TEMP" = "enabled" ]; then
     ENABLED=1
@@ -24,7 +24,7 @@ fi
 #
 # autostart
 #
-if grep -P "WantedBy *= *multi-user[.]target" /lib/systemd/system/mnt-winsun.mount; then
+if grep -P "WantedBy *= *multi-user[.]target" /lib/systemd/system/mnt-1.mount; then
     AUTOSTART=1
 else
     AUTOSTART=0
