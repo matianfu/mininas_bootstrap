@@ -1,5 +1,7 @@
 #!/bin/bash
 
+DIVERSION=1.0
+
 CHASSIS_PATH=/etc/mininas/chassis/static
 
 ATA_COUNT=$(ls -1 $CHASSIS_PATH/ata | wc -l)
@@ -73,6 +75,19 @@ for i in $(seq 1 $ATA_COUNT); do
                 echo "${ARRAY[$prop]}" > $FS_PATH/$prop
             fi
         done
+
+        #
+        # TODO: quick fix for attr_size
+        #
+        ATTR_SIZE=$( udevadm info --attribute-walk $DEVPATH | grep "ATTR{size}" | sed -e 's/\s\+ATTR{size}==//' -e 's/^"//' -e 's/"$//' )
+        
+        echo "$ATTR_SIZE" > $DISK_IDENTITY_PATH/attr_size
+
+        #
+        # TODO: quick fix for version (disk information version)
+        #
+        echo "$DIVERSION" > $DISK_IDENTITY_PATH/di_version
+ 
     fi
 
 done
