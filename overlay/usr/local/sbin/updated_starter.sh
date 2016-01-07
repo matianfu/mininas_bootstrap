@@ -51,11 +51,12 @@ read_soft_version()
 	if [ -f /etc/mininas/version ]  ; then 
 		majorversion=`cat /etc/mininas/version | awk '{print $2}'`
 		minorversion=`cat /etc/mininas/version | awk '{print $3}'`
-		samllversion=`cat /etc/mininas/version | awk '{print $4}'`
-		softversion=$majorversion.$minorversion.$samllversion
+		smallversion=`cat /etc/mininas/version | awk '{print $4}'`
+		softversion=$majorversion.$minorversion.$smallversion
 		echo "$softversion"
 	else 
 		softversion=0.0.0
+		echo "$softversion"
 		start_logwrite "read_soft_version---not find  the /etc/mininas/version" 
 	fi
 	return 0
@@ -74,6 +75,7 @@ read_hardversion()
 	
 	else 
 		hardversion=noversion
+		echo "$hardversion"
 		start_logwrite "read_hardversion---not find  the /etc/mininas/hardversion"
 	fi
 	return 0
@@ -88,11 +90,12 @@ read_updated_version()
 	if [ -f /etc/mininas/updatedversion ] ; then 
 		majorversion=`cat /etc/mininas/updatedversion |  awk 'BEGIN{FS="."}{print $1}'`
 		minorversion=`cat /etc/mininas/updatedversion | awk 'BEGIN{FS="."}{print $2}'`
-		samllversion=`cat /etc/mininas/updatedversion | awk 'BEGIN{FS="."}{print $3}'`
-		updatedversion=$majorversion.$minorversion.$samllversion
+		smallversion=`cat /etc/mininas/updatedversion | awk 'BEGIN{FS="."}{print $3}'`
+		updatedversion=$majorversion.$minorversion.$smallversion
 		echo "$updatedversion"
 	else 
 		updatedversion=0.0.0
+		echo "$updatedversion"
 		start_logwrite "read_updated_version---not find  the /etc/mininas/updatedversion"  
 	fi
 	return 0
@@ -107,11 +110,14 @@ campare_version()
 	if [ -f /etc/mininas/updatedversion ] ; then 
 		majorversion=`cat /etc/mininas/updatedversion | awk 'BEGIN{FS="."}{print $1}'`
 		minorversion=`cat /etc/mininas/updatedversion | awk 'BEGIN{FS="."}{print $2}'`
-		samllversion=`cat /etc/mininas/updatedversion | awk 'BEGIN{FS="."}{print $3}'`
+		smallversion=`cat /etc/mininas/updatedversion | awk 'BEGIN{FS="."}{print $3}'`
 		updatedversion=$majorversion.$minorversion.$smallversion
 		echo "currentupdatedversion:$updatedversion"
 	else 
 		updatedversion=0.0.0
+		majorversion=0
+		minorversion=0
+		smallversion=0
 		start_logwrite "campare_version---not find  the /etc/mininas/updatedversion"  
 	fi
 	
@@ -127,8 +133,8 @@ campare_version()
 		return 1
 	fi
 	
-	let currentversion=10000*$majorversion+100*$minorversion+$smallversion
-	let updateversion=10000*$down_majorversion+100*$down_minorversion+$down_smallversion
+	let currentversion=10000*$majorversion+100*$minorversion+1*$smallversion
+	let updateversion=10000*$down_majorversion+100*$down_minorversion+1*$down_smallversion
 	
 	if [ $currentversion -ge  $updateversion ] ; then	
 		start_logwrite "campare_version--- eer the version have question"
