@@ -28,7 +28,7 @@ install_qqiot
 install_netatalk
 install_test
 install_kernel
-enable_systemd_network
+# enable_systemd_network
 do_cleanup 
 
 
