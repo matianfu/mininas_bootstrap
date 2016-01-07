@@ -1,0 +1,13 @@
+[Unit]
+Description=Initial DVM Pool Refresh
+
+After=mnt-1.mount
+Before=mininas.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/mininas_pool_refresh
+
+[Install]
+WantedBy=multi-user.target
+
