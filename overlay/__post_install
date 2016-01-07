@@ -576,12 +576,16 @@ enable_systemd_network()
 
     banner "enable systemd network"
 
+    highlight "disable networking service"
+    apt-get -y install chkconfig
+    chkconfig networking off
+    echo "done"
+
     highlight "enable network & dns service"
     systemctl enable systemd-networkd
     systemctl enable systemd-resolved.service
     echo "done"
 
-    
    # highlight "create 20-dhcp.network"
    # touch /etc/systemd/network/20-dhcp.network
    # echo "[Match]" > /etc/systemd/network/20-dhcp.network
