@@ -55,10 +55,17 @@ for uuid in $( ls -1 /run/mininas/dvm/volumes ); do
         # volume not mounted
         STATE=$( cat $VOLPATH/state )
 
+        MNTOPT=
         if [ "$STATE" = "ready" ]; then
-            
+            MNTOPT="-o ro"
+        elif [ "$STATE" = "missing" ]; then
+            MNTOPT="-o ro,degraded"
+        fi
+
+        
+        if [ ! -z "$MNTOPT" ]; then    
             # try mount
-            mount -o ro UUID=$uuid $TMPMOUNT
+            mount $MNTOPT UUID=$uuid $TMPMOUNT
 
             if [ "$?" -eq 0 ]; then                
                 # mount success
@@ -71,6 +78,7 @@ for uuid in $( ls -1 /run/mininas/dvm/volumes ); do
                 # mount fail, do nothing
                 :
             fi
+
         fi
     fi        
 done
