@@ -73,7 +73,7 @@ install_basic_commands () {
     # id : coreutils (which is already installed)
     # vim, tree (for convenience)
     apt-get -y install members libc-bin coreutils vim tree initramfs-tools
-    apt-get -y -t sid install systemd
+    # apt-get -y -t sid install systemd
     echo "done"
 }
 
@@ -371,6 +371,13 @@ install_deb_packages () {
     highlight "picking btrfs-tools from sid, please wait..."
     apt-get -y -t sid install btrfs-tools &> /dev/null
     echo "done"
+
+    # network-manager
+    apt-get -y install network-manager
+    # set managed=true
+    overlay_file /etc/NetworkManager/NetworkManager.conf
+    # disable ModemManager, otherwise serial port wont work
+    systemctl disable ModemManager
 }
 
 install_python_packages () {
@@ -429,15 +436,15 @@ EOF
     enable_service mininas
     echo "done"
 
-    highlight "install disk-watcher service, automount-disk service"
-    install_service disk-watcher
-    enable_service disk-watcher
-    echo "done"
+#    highlight "install disk-watcher service, automount-disk service"
+#    install_service disk-watcher
+#    enable_service disk-watcher
+#    echo "done"
 
-    highlight "install automount-disk service"
-    install_service automount-disk 
-    enable_service automount-disk
-    echo "done"
+#    highlight "install automount-disk service"
+#    install_service automount-disk 
+#    enable_service automount-disk
+#    echo "done"
 
 #    highlight "install rename-hostname.service"
 #    install_service rename-hostname

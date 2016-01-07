@@ -49,17 +49,18 @@ if [ ! -z "$WHAT" ]; then
     if ls -1 $R_VOLUMES | grep "$UUID" > /dev/null ; then
         ln -s $R_VOLUMES/$UUID $POOLPATH/volume
     fi
-
-    #
-    # add link to snapshot
-    #     
-    ln -s /etc/mininas/data/dvm/pools/1/snapshot $POOLPATH/snapshot
-
-    #
-    #
-    # retrieve name
-    ln -s /etc/mininas/data/dvm/pools/1/name $POOLPATH/name
 fi
+
+#
+# add link to snapshot
+#     
+ln -s /etc/mininas/data/dvm/pools/1/snapshot $POOLPATH/snapshot
+
+#
+#
+# retrieve name
+ln -s /etc/mininas/data/dvm/pools/1/name $POOLPATH/name
+
 
 echo "$WHERE" > $POOLPATH/mountpoint
 echo "$TYPE" > $POOLPATH/type

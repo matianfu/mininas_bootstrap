@@ -1,9 +1,11 @@
 #!/bin/bash
 
 #
-systemctl enable mnt-winsun.mount
+systemctl enable mnt-1.mount
 #
-systemctl enable mnt-winsun-mount-success.service
+# systemctl enable mnt-winsun-mount-success.service
 #
 # mount-failure service is static
+
+mininas_pool_refresh
 
