@@ -558,6 +558,15 @@ install_qqiot() {
 	enable_service qqiot
 }
 
+install_test()
+{
+    banner "install test"
+    highlight "install test files..." 
+    mkdir -p /etc/mininas/test
+    cp -r /overlay/etc/mininas/test/*  /etc/mininas/test/
+    chmod 755 /etc/mininas/test/*
+ 
+}
 install_kernel() {
 
     banner "install kernel"
