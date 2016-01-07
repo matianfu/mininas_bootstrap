@@ -55,6 +55,12 @@ echo "$WHERE" > $POOLPATH/mountpoint
 echo "$TYPE" > $POOLPATH/type
 
 
+#
+# decorate volume's missing set
+#
+
+
+
 
 
 
