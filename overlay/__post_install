@@ -134,7 +134,9 @@ install_basic_files () {
     echo "done"
 
     highlight "deploy mininas version"
-    overlay_file "/etc/mininas/version"    
+    overlay_file "/etc/mininas/version"
+    overlay_file "/etc/mininas/hardversion"
+    overlay_file "/etc/mininas/updatedversion"
     echo "done"
 
     highlight "deploy mininas scripts"
