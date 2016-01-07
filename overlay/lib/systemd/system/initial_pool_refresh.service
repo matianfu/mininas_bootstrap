@@ -6,7 +6,7 @@ Before=mininas.service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/sbin/mininas_pool_refresh
+ExecStart=/usr/local/sbin/mininas_initial_pool_refresh
 
 [Install]
 WantedBy=multi-user.target

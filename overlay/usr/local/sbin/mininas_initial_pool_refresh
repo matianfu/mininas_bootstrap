@@ -1,0 +1,21 @@
+#!/bin/bash
+
+#
+# refresh pool
+#
+mininas_pool_refresh
+
+#
+# if pool mounted, snapshot
+#
+MOUNTED_FILE=/run/mininas/dvm/pools/1/mounted
+
+if [ -f "$MOUNTED_FILE" ]; then
+
+    MOUNTED=$( cat $MOUNTED_FILE )
+    if [ "$MOUNTED" -eq 1 ]; then
+        mininas_pool_snapshot_volume
+    fi 
+fi
+
+
