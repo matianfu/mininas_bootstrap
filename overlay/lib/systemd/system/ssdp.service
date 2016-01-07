@@ -1,5 +1,6 @@
 [Unit]
 Description=Mininas SSDP Broadcasting
+After=systemd-networkd.service systemd-resolved.service
 
 [Service]
 Type=forking
