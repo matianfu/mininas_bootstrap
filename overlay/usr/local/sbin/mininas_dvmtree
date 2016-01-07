@@ -1,0 +1,19 @@
+#!/bin/bash
+
+DVMROOT=/run/mininas/dvm
+
+FOLLOW=
+
+if [ "$1" = "-L" ]; then
+    FOLLOW="-L"
+fi
+
+for line in $(find $FOLLOW $DVMROOT); do
+
+    if [ -d "$line" ]; then
+        echo "$line" | sed 's/^\/run\/mininas\/dvm//'
+    else
+        echo "$line ------> $(cat $line)" | sed 's/^\/run\/mininas\/dvm//'
+    fi
+done
+

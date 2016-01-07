@@ -1,0 +1,130 @@
+#!/bin/bash
+
+POOLID=1
+ARGS_SORTED=
+
+while getopts "p:" opts; do
+
+    case $opt in
+        p)
+            POOLID="$OPTARG"
+            ;;
+        \?)
+            echo "invalid option: -$OPTRAG"
+            exit 1
+            ;;
+        :)
+            echo "invalid option: $OPTARG requires an argument"
+            exit 1
+            ;;
+    esac
+done
+
+shift $((OPTIND -1))
+
+if [ -z "$1" ]; then
+    echo "provide disk slot number(s) please"
+    exit 1
+fi
+
+source /usr/local/sbin/mininas_dvm
+
+mininas_pool_refresh
+
+if [ ! -f $R_POOLS/$POOLID/mounted ]; then
+    echo "registry error"
+    exit 1
+fi
+
+MOUNTED=$( cat $R_POOLS/$POOLID/mounted )
+
+if [ "$MOUNTED" -ne 1 ]; then
+    echo "operation requires pool mounted"
+    exit 1
+fi
+
+ARGS_SORTED=$( (for arg in $@; do echo $arg; done) | sort -u | tr '\n' ' ' ) 
+ 
+for slot in $ARGS_SORTED; do
+
+    #
+    #
+    #
+    if [ ! -d $R_CHASSIS/$slot ]; then
+        echo "invalid slot number $slot"
+        exit 1
+    fi
+
+    #
+    # if no disk for slot
+    #
+    if [ ! -e $R_CHASSIS/$slot/disk ]; then
+        echo "no disk in slot $slot"
+        exit 1
+    fi
+
+    #
+    # if slot mounted, fail
+    #
+    MOUNTED=$( cat $R_CHASSIS/$slot/mounted )
+    if [ "$MOUNTED" -eq 1 ]; then
+        echo "slot $slot mounted"
+        exit 1
+    fi
+
+done
+
+DEVPATH=$( (for slot in $ARGS_SORTED; do echo $(cat $R_CHASSIS/$slot/path); done) | sort -u )
+DEVPATH_ONELINE=$( echo "$DEVPATH" | tr '\n' ' ' )
+
+btrfs device add $DEVPATH_ONELINE /mnt/1 -f
+
+if [ "$?" -ne 0 ]; then
+
+    echo "btrfs operation failed. command line:"
+    echo "btrfs device add $DEVPATH_ONELINE /mnt/1 -f"
+    
+    mininas_pool_refresh
+    
+    exit 1
+fi
+
+mininas_pool_refresh
+
+echo "operation success"
+
+exit 0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

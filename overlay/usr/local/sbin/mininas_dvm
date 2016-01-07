@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# R for runtime
+R_DVM=/run/mininas/dvm
+R_CHASSIS=$R_DVM/chassis
+R_VOLUMES=$R_DVM/volumes
+R_POOLS=$R_DVM/pools
+
+
+
+
+

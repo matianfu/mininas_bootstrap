@@ -1,0 +1,232 @@
+#!/bin/bash
+
+
+LABEL="winsun"
+DATAMODE="single"
+POOLID=1
+ARGS_SORTED=
+
+#
+# -L label (optional)
+# -d data mode (optional)
+#
+while getopts "d:L:p:" opt; do
+
+    case $opt in
+        L)
+            LABEL="$OPTARG"
+            ;;
+        d)
+            DATAMODE="$OPTARG"
+            ;;
+        p)
+            POOLID="$OPTARG"
+            ;;
+        \?)
+            echo "invalid option: -$OPTARG"
+            exit 1
+            ;;
+        :)
+            echo "invalid option: $OPTRAG requires an argument"
+            exit 1
+            ;;
+    esac
+done
+
+shift $((OPTIND -1))
+
+if [ -z "$1" ]; then
+    echo "provide disk slot numbers please"
+    exit 1
+fi
+
+if printf "raid0\nraid1\nraid5\nraid6\nraid10\nsingle\n" | grep "^$DATAMODE$"; then
+    :
+else
+    echo "invalid datamode $DATAMODE"
+    exit 1
+fi
+
+source /usr/local/sbin/mininas_dvm
+
+#
+# should we do it now?
+#
+mininas_pool_refresh
+
+if ls -1 $R_POOLS | grep $POOLID ; then
+    :
+else
+    echo "pool number $POOLID is invalid"
+    exit 1
+fi
+
+#
+# sort and undupe
+#
+ARGS_SORTED=$( (for arg in $@; do echo $arg; done) | sort -u | tr '\n' ' ' )
+
+#
+#  paranoid check and test if mounted
+#
+for slot in $ARGS_SORTED; do
+
+    #
+    # test slot range
+    #
+    if [ ! -d "$R_CHASSIS/$slot" ]; then
+        echo "invalid slot number $slot or corresponding chassis dir does not exist"
+        exit 1
+    fi
+
+    #
+    # retrieve DEVPATH
+    #
+    DEVPATH=$( cat $R_CHASSIS/$slot/path )
+    if [ -z "$DEVPATH" ]; then
+        echo "chassis/$slot/path does not exist or file empty"
+        exit 1
+    fi
+
+    #
+    # verify DEVPATH format
+    #
+    if echo "$DEVPATH" | grep -P "^/dev/sd[a-z]" > /dev/null ; then
+        :
+    else 
+        echo "invalid content in chassis/$slot/path file"
+        exit 1
+    fi
+
+    MOUNTED=$( cat $R_CHASSIS/$slot/mounted )
+    if [ -z "$MOUNTED" ]; then
+        echo "chassis/$slot/mounted does not exist or file empty"
+        exit 1
+    elif [ "$MOUNTED" -ne 0 ]; then
+        echo "slot $slot mounted, please umount, or disable mountpoint and reboot"
+        exit 1
+    fi
+
+done
+
+#
+# sort and remove duplicate, DEVPATH is a multiple line string, containing 
+# device file path each line (eg. /dev/sda)
+#
+DEVPATH=$( (for slot in $ARGS_SORTED; do echo $(cat $R_CHASSIS/$slot/path); done) | sort -u )
+DEVPATH_ONELINE=$(echo "$DEVPATH" | tr '\n' ' ')
+
+#
+# run mkfs.btrfs command
+#
+if [ -z "$DATAMODE" ]; then
+    mkfs.btrfs -f -L $LABEL $DEVPATH_ONELINE 
+else
+    mkfs.btrfs -f -L $LABEL -d $DATAMODE $DEVPATH_ONELINE
+fi
+
+if [ "$?" -ne 0 ]; then 
+    echo "mkfs.btrfs failed"
+    mininas_pool_refresh
+    exit 1
+fi
+
+#
+# refresh
+#
+mininas_pool_refresh
+
+UUID_SET=$( ls -1 $R_VOLUMES )
+if [ -z "$UUID_SET" ]; then
+    echo "run-time volumes info error, please reboot."
+    exit 1
+fi
+
+UUID=
+for uuid in $UUID_SET ; do
+    
+    STATE=$( cat $R_VOLUMES/$uuid/state )
+    if [ -z "$STATE" ] || [ "$STATE" != "ready" ]; then
+        continue
+    fi
+
+    READY_SET=$( ls -1 $R_VOLUMES/$uuid/ready | sort -u | tr '\n' ' ' )
+    if [ "$READY_SET" = "$ARGS_SORTED" ]; then
+        UUID=$uuid
+        break
+    fi
+done
+
+if [ -z "$UUID" ]; then
+    echo "no ready volume match given arguments. please retry."
+    exit 1
+fi
+
+#
+# now volume uuid is found
+#
+
+#
+# modify unit file
+#
+LIBPATH=/lib/systemd/system/
+UNITFILE=$LIBPATH/mnt-${POOLID}.mount
+SWAPFILE=$LIBPATH/.mnt-${POOLID}.mount.swp
+
+cat $UNITFILE | sed "s/^What.*/What=UUID=${UUID}/" > $SWAPFILE
+mv $SWAPFILE $UNITFILE
+
+#
+# daemon reload
+#
+systemctl daemon-reload
+if [ "$?" -ne 0 ]; then
+    echo "systemd daemon-reload failed. please reboot."
+    mininas_pool_refresh
+    exit 1
+fi
+
+#
+# enable mount point anyway
+#
+systemctl enable mnt-${POOLID}.mount
+if [ "$?" -ne 0 ]; then
+    echo "cannot enable systemd mount unit file"
+    mininas_pool_refresh
+    exit 1
+fi
+
+#
+# mount 
+#
+systemctl start mnt-${POOLID}.mount
+
+#
+# refresh
+#
+mininas_pool_refresh
+
+MOUNTED=$( cat $R_POOLS/${POOLID}/mounted )
+
+if [ "$MOUNTED" -eq 1 ]; then
+    mininas_pool_snapshot_volume $POOLID
+    echo "successfully made volume for pool $POOLID and mounted."
+    exit 0
+elif [ "$MOUNTED" -eq 0 ]; then
+    echo "successfully made volume for pool $POOLID, but failed to start systemd mount. please reboot"
+    exit 1
+else
+    echo "dvm registry error, please reboot and retry."
+    exit 1
+fi
+
+
+
+
+
+
+
+
+
+
+

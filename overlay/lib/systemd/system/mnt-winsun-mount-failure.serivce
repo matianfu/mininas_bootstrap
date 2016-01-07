@@ -1,8 +1,0 @@
-[Unit]
-Description='/mnt/1/' mountpoint mount failure action
-
-[Service]
-Type=simple
-ExecStart=/bin/bash -c "echo \"winsum mount failed\""
-
-

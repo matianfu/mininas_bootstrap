@@ -1,6 +1,6 @@
 [Unit]
 Description='/mnt/1' Mountpoint
-OnFailure=mnt-winsun-mount-failure.service
+# OnFailure=mnt-1-mount-failure.service
 
 [Mount]
 What=
