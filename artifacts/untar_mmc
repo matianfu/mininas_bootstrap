@@ -32,11 +32,23 @@ echo "done"
 
 echo ""
 echo $DASH
+echo "rename hostname"
+echo $DASH
+mkdir /winsun
+mount /dev/mmcblk0p1 /winsun
+echo -e "WinsunTech-\c" > /winsun/etc/hostname
+dd if=/dev/mtdblock0 bs=1 skip=1697765 count=6 >> /winsun/etc/hostname
+echo "done"
+
+
+echo ""
+echo $DASH
 echo "untar mmclbk0p2"
 echo $DASH
 mount -t ext4 /dev/mmcblk0p2 /mmc
 # tar xvf /media/mmcblk0p2.tar -C /mmc
 cat /media/mmcblk0p2.tar | pv | tar xf - -C /mmc
+
 echo ""
 echo $DASH
 echo "install qqiot guid and licence"
@@ -59,11 +71,3 @@ umount /mmc
 echo "done"
 
 rm -rf /mmc
-
-
-echo ""
-echo $DASH
-echo "rename hostname"
-echo $DASH
-dd if=/dev/mtdblock0 bs=1 skip=1697765 count=6 | awk '{print "WinsunTech-" $1}' > /etc/hostname
-echo "done"

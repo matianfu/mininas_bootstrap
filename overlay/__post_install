@@ -134,7 +134,9 @@ install_basic_files () {
     echo "done"
 
     highlight "deploy mininas version"
-    overlay_file "/etc/mininas/version"    
+    overlay_file "/etc/mininas/version"
+    overlay_file "/etc/mininas/hardversion"
+    overlay_file "/etc/mininas/updatedversion"
     echo "done"
 
     highlight "deploy mininas scripts"
@@ -574,27 +576,36 @@ enable_systemd_network()
 
     banner "enable systemd network"
 
+    highlight "disable networking service"
+    apt-get -y install chkconfig
+    chkconfig networking off
+    echo "done"
+
     highlight "enable network & dns service"
     systemctl enable systemd-networkd
     systemctl enable systemd-resolved.service
     echo "done"
 
-    
-    highlight "create 20-dhcp.network"
-    touch /etc/systemd/network/20-dhcp.network
-    echo "[Match]" > /etc/systemd/network/20-dhcp.network
-    echo "        Name=eth0" >> /etc/systemd/network/20-dhcp.network
-    echo "[Network]" >> /etc/systemd/network/20-dhcp.network
-    echo "        DHCP=yes" >> /etc/systemd/network/20-dhcp.network
+   # highlight "create 20-dhcp.network"
+   # touch /etc/systemd/network/20-dhcp.network
+   # echo "[Match]" > /etc/systemd/network/20-dhcp.network
+   # echo "        Name=eth0" >> /etc/systemd/network/20-dhcp.network
+   # echo "[Network]" >> /etc/systemd/network/20-dhcp.network
+   # echo "        DHCP=yes" >> /etc/systemd/network/20-dhcp.network
+   # echo "done"
+
+    highlight "deploy 20-dhcp.network"
+    overlay_file "/etc/systemd/network/20-dhcp.network"
     echo "done"
 
-    highlight "modify resolved.conf"
-    echo "[Resolve]" > /etc/systemd/resolved.conf
-    echo "        DNS=202.96.209.133" >> /etc/systemd/resolved.conf
-    echo "        DNS=202.96.209.5" >> /etc/systemd/resolved.conf
-    echo "done"
+   # highlight "modify resolved.conf"
+   # echo "[Resolve]" > /etc/systemd/resolved.conf
+   # echo "        DNS=202.96.209.133" >> /etc/systemd/resolved.conf
+   # echo "        DNS=202.96.209.5" >> /etc/systemd/resolved.conf
+   # echo "done"
 
     highlight "create ln file 'resolv.conf'"
+    rm /etc/resolv.conf
     ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
     echo "done"
 }
