@@ -13,6 +13,10 @@ powerflgcnt=0
 
 poweroncnt=0
 rebootcnt=0
+
+echo "set fan's rate"
+echo 55 > /proc/FAN_io 
+
 echo "power key beign"
 echo PWR_LED 1 > /proc/BOARD_io 
 while true 
@@ -44,7 +48,7 @@ do
 			fi
 		;;
 		"NOBTN ON")
-			echo "NOBTN ON"
+			#echo "NOBTN ON"
 			poweroncnt=0
 			rebootcnt=0
 		;;
