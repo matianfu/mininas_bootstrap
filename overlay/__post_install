@@ -103,7 +103,6 @@ prepare_layout() {
   
     highlight "make mininas folder"  
     mkdir -p /etc/mininas
-    cp -r /overlay/etc/mininas/chassis /etc/mininas
     mkdir -p /etc/mininas/templates
     # template files are deployed by individual functions
     echo "done"
@@ -133,6 +132,10 @@ install_basic_files () {
     overlay_file "/etc/mininas/data/configs/volume.json"    
     echo "done"
 
+    highlight "deplay chassis file"
+    cp -r /overlay/etc/mininas/chassis /etc/mininas
+    echo "done"
+
     highlight "deploy mininas version"
     overlay_file "/etc/mininas/version"    
     echo "done"
@@ -147,17 +150,17 @@ install_basic_files () {
     cp -r /overlay/etc/mininas/data/dvm /etc/mininas/data/
 
     # disabled by default
-    overlay_file /lib/systemd/system/mnt-winsun.mount
+    overlay_file /lib/systemd/system/mnt-1.mount
     # disabled by default
-    overlay_file /lib/systemd/system/mnt-winsun-mount-success.service
+    # overlay_file /lib/systemd/system/mnt-1-mount-success.service
     # static service
-    overlay_file /lib/systemd/system/mnt-winsun-mount-failure.service
+    # overlay_file /lib/systemd/system/mnt-1-mount-failure.service
     echo "done"
 
     highlight "deploy system service"
-    # enabled by default
-    install_service system_startup_probe
-    enable_service system_startup_probe
+    # enabled by default    
+    install_service initial_pool_refresh
+    enable_service initial_pool_refresh
     echo "done"
 }
 
