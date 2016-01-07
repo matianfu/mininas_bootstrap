@@ -1,6 +1,11 @@
 #!/bin/bash
 
+
 systemctl disable mnt-1.mount
+
+# this change pool's enable state
+# need a refresh
+mininas_pool_refresh
 
 
 
