@@ -60,11 +60,13 @@ echo "SERIAL:$SERIAL"
 if [ -e /mmc/ping/qqiot ] ; then 
 cp `find /media/qqiotlicence/licence/ -name G*${SERIAL}*`  /mmc/ping/qqiot/GUID_file.txt
 cp `find /media/qqiotlicence/licence/ -name l*${SERIAL}*`  /mmc/ping/qqiot/licence.sign.file.txt
+chmod  664 /mmc/ping/qqiot/*.txt
 fi
 
 if [ -e /mmc/pong/qqiot ] ; then
 cp `find /media/qqiotlicence/licence/ -name G*${SERIAL}*`  /mmc/pong/qqiot/GUID_file.txt
 cp `find /media/qqiotlicence/licence/ -name l*${SERIAL}*`  /mmc/pong/qqiot/licence.sign.file.txt
+chmod 664 /mmc/pong/qqiot/*.txt
 fi
 umount /mmc
 echo "done"
