@@ -224,6 +224,7 @@ generate_output () {
 
     echo "cp aaa.tar.gz"
     cp ${STAGING_DIR}/aaa.tar.gz ${OUTPUT_DIR}/install
+    cp ${STAGING_DIR}/svn/release/updatedemo.py ${OUTPUT_DIR}/install
 	cp ${ARTIFACT_DIR}/netatalk-3.1.8.tar.gz ${OUTPUT_DIR}/install
     echo "done"
     
