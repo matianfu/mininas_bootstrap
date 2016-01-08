@@ -17,6 +17,24 @@ test_dir(){
     fi
 }
 
+test_service{
+
+	systemctl enable $1.service
+	  
+	systemctl is-enabled $1.service
+	
+	if [ $? -eq 0 ] ; then 
+		printf "$1 is enabled"
+	else 
+		FLAGS=$(($FLAGS+1))
+		printf "$1\t\t\tfailed\n" >> $TESTFILE
+	fi
+
+
+
+}
+
+
 test_mininas_example() {
    echo "test"
 }
@@ -129,3 +147,95 @@ netatalk_test(){
 	test_file /etc/pam.d/netatalk
 	result_test $FLAGS
 }
+
+mysql_test(){
+	highlight "mysql test"
+	FLAGS=0
+	printf "mysql files:\n" >> $TESTFILE
+	test_file "/etc/mysql/my.cnf"
+	test_dir "/etc/mininas/data/mysql"
+	result_test $FLAGS
+
+}
+proftpd_test(){
+	highlight "proftpd test"
+	FLAGS=0
+	printf "proftpd files:\n" >> $TESTFILE
+	test_file "/etc/proftpd/proftpd.conf"
+	test_file "/etc/mininas/data/configs/proftpd.json"
+	test_file "/etc/mininas/templates/proftpd/default"
+	test_file "/etc/mininas/templates/proftpd/expanded"
+	
+	test_dir "etc/mininas/templates/proftpd
+	result_test $FLAGS
+}
+deb_packages_test(){
+	highlight "deb_packages test"
+	FLAGS=0
+	printf "deb_packages files:\n" >> $TESTFILE
+	
+	result_test $FLAGS
+}
+python_packages_test(){
+	highlight "python_packages test"
+	FLAGS=0
+	printf "python_packages files:\n" >> $TESTFILE
+	
+	result_test $FLAGS
+}
+mininas_app_test(){
+	highlight "mininas_app test"
+	FLAGS=0
+	printf "mininas_app files:\n" >> $TESTFILE
+	test_dir "/srv/mini/aaa"
+	test_file "/srv/mini/aaa/manage.py"
+	test_service "mininas"
+	result_test $FLAGS
+}   
+thunder_test(){
+
+	highlight "thunder test"
+	FLAGS=0
+	printf "thunder files:\n" >> $TESTFILE
+	test_dir "/opt/xware"
+	
+	test_service "thunder"
+	result_test $FLAGS
+
+
+}
+dlna_test(){
+	highlight "dlna test"
+	FLAGS=0
+	printf "dlan files:\n" >> $TESTFILE
+	test_dir "/etc/mininas/templates/minidlna"
+	test_file "/etc/minidlna.conf"
+	test_file "/etc/mininas/data/configs/minidlna.jso"
+	test_file "/etc/mininas/templates/minidlna/default""	
+	test_service "dlna"
+	result_test $FLAGS
+
+
+}
+
+qqiot_test(){
+
+	highlight "qqiot test"
+	FLAGS=0
+	printf "qqiot files:\n" >> $TESTFILE
+	test_dir "/etc/mininas/data/qqiot"
+	test_file "/usr/local/sbin/mininasqqiot"
+	test_file "/usr/local/lib/libnassdk.so"
+	test_file "/usr/local/lib/libtxdevicesdk.so"
+	test_file "/etc/mininas/data/qqiot/1700001154.pem"	
+	test_service "mininas"
+	result_test $FLAGS
+
+
+
+}
+
+
+
+
+
