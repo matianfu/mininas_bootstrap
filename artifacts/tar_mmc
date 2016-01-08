@@ -16,6 +16,7 @@ tar cf - -C /mmc . | pv > /media/mmcblk0p2.tar
 umount /mmc
 
 rm -rf /mmc
+busybox-x86_64 sync
 
 echo "done"
 
