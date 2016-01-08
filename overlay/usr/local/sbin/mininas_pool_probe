@@ -41,14 +41,38 @@ TYPE=$(cat $UNITFILE | grep -P "^Type *=" | sed -n -e "s/^Type *= *//p")
 echo "$ENABLED" > $POOLPATH/enabled
 echo "$AUTOSTART" > $POOLPATH/autostart
 
+#
+# uuid file always exists, may be a valid UUID or empty
+#
 if [ ! -z "$WHAT" ]; then
 
     UUID=$( echo "$WHAT" | sed "s/^UUID=//" )
     echo "$UUID" > $POOLPATH/uuid
 
+else 
+    touch $POOLPATH/uuid
+fi
+
+#
+# volume folder always exists
+#
+# if UUID is set and "at least one disk in volume is in chassis"
+# volume is created as symlink to runtime info.
+# otherwise it is an empty folder
+#
+# TODO maybe one line works. test in future.
+#
+if [ ! -z "$WHAT" ]; then
+
     if ls -1 $R_VOLUMES | grep "$UUID" > /dev/null ; then
         ln -s $R_VOLUMES/$UUID $POOLPATH/volume
+    else
+        # empty folder
+        mkdir $POOLPATH/volume
     fi
+else
+    # empty folder
+    mkdir $POOLPATH/volume
 fi
 
 #

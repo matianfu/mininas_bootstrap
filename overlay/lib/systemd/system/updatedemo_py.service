@@ -1,0 +1,12 @@
+[Unit]
+Description="Serving web UI when system (auto) updating"
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python /srv/mini/updatedemo.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+

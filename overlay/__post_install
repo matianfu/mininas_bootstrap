@@ -140,6 +140,7 @@ install_basic_files () {
     overlay_file "/etc/mininas/version"
     overlay_file "/etc/mininas/hardversion"
     overlay_file "/etc/mininas/updatedversion"
+    overlay_file "/etc/mininas/luv"
     echo "done"
 
     highlight "deploy mininas scripts"
@@ -186,6 +187,19 @@ install_samba () {
     # overlay_file "/etc/mininas/templates/samba/share"
 
     cp -r /overlay/etc/mininas/templates/samba /etc/mininas/templates
+    echo "done"
+}
+
+install_network () {
+
+    banner "install network"
+
+    highlight "put conf, json, and template files"
+    overlay_file "/etc/network/interfaces"
+    overlay_file "/etc/mininas/data/configs/network.json"
+    overlay_file "/etc/mininas/data/configs/network.json.default"
+
+    cp -r /overlay/etc/mininas/templates/network /etc/mininas/templates
     echo "done"
 }
 
@@ -436,11 +450,17 @@ EOF
     enable_service mininas
     echo "done"
 
-#    highlight "install disk-watcher service, automount-disk service"
-#    install_service disk-watcher
-#    enable_service disk-watcher
-#    echo "done"
+    highlight "install disk-watcher service"
+    install_service disk-watcher
+    enable_service disk-watcher
+    echo "done"
 
+    highlight "install updatedemo.py"
+    cp /overlay/install/updatedemo.py /srv/mini
+    install_service updatedemo_py
+    enable_service updatedemo_py
+    echo "done"
+    
 #    highlight "install automount-disk service"
 #    install_service automount-disk 
 #    enable_service automount-disk
