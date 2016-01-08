@@ -101,6 +101,7 @@ build_volume_registry () {
         DEVID_PATH=$MISSING_PATH/$devid
         # mkdir -p $DEVID_PATH
         # echo "$devid" > $DEVID_PATH
+        # this is enough for now
         touch $DEVID_PATH
     done
 

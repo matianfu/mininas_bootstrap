@@ -51,6 +51,17 @@ if [ ! -z "$WHAT" ]; then
     fi
 fi
 
+#
+# add link to snapshot
+#     
+ln -s /etc/mininas/data/dvm/pools/1/snapshot $POOLPATH/snapshot
+
+#
+#
+# retrieve name
+ln -s /etc/mininas/data/dvm/pools/1/name $POOLPATH/name
+
+
 echo "$WHERE" > $POOLPATH/mountpoint
 echo "$TYPE" > $POOLPATH/type
 
