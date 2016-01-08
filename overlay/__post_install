@@ -558,7 +558,7 @@ install_qqiot() {
 	highlight "install service public key"
 	local FILE="/etc/mininas/data/qqiot/1700001154.pem"
 	overlay_file $FILE
-	chmod 400 $FILE
+	chmod 664 $FILE
 	
 	highlight "install qqiot service "
 	install_service qqiot
