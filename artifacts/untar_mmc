@@ -30,16 +30,15 @@ cat /media/mmcblk0p1.tar | pv | tar xf - -C /mmc
 umount /mmc
 echo "done"
 
-echo ""
-echo $DASH
-echo "rename hostname"
-echo $DASH
-mkdir /winsun
-mount /dev/mmcblk0p1 /winsun
-echo -e "WinsunTech-\c" > /winsun/etc/hostname
-dd if=/dev/mtdblock0 bs=1 skip=1697765 count=6 >> /winsun/etc/hostname
-echo "done"
-
+#echo ""
+#echo $DASH
+#echo "rename hostname"
+#echo $DASH
+#mkdir /winsun
+#mount /dev/mmcblk0p1 /winsun
+#echo -e "WinsunTech-\c" > /winsun/etc/hostname
+#dd if=/dev/mtdblock0 bs=1 skip=1697765 count=6 >> /winsun/etc/hostname
+#echo "done"
 
 echo ""
 echo $DASH
