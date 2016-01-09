@@ -599,7 +599,7 @@ install_kernel() {
     banner "install kernel"
 
     highlight "install kernel package, please wait..."
-    dpkg -i /overlay/install/linux-image-4.3.3.001\+_001_amd64.deb &> /dev/null
+    dpkg -i /overlay/install/linux-image-4.3.3.001\+_001_amd64.deb
     echo "done"
 
     
