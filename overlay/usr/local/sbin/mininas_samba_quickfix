@@ -1,0 +1,14 @@
+#!/bin/bash
+
+
+# TMPFILE=/run/mininas/sambatmpfix
+
+BUF=$(cat /etc/samba/smb.conf)
+
+for i in $(seq -w 0 99); do
+	BUF=$( echo "$BUF" | sed -e "s/ smbshare$i/ smbshare0${i}/g" -e "s/+smbshare$i/+smbshare0${i}/g" -e "s/+smbshare${i}ro/+smbshare${i}ro/g" )
+done
+
+echo "$BUF" > /etc/samba/smb.conf
+
+
