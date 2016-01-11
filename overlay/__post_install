@@ -13,7 +13,7 @@ THUNDER_UID=990
 
 DASH="----------------------------------------"
 
-highlight () { 
+highlight () {
 
      echo -e "\e[32m\e[1m${1}\e[0m"
 }
@@ -44,7 +44,7 @@ enable_service () {
 
     # systemctl enable works in chrooted environment
     # ln -s /etc/systemd/system/$1.service /lib/systemd/system/multi-user.target.wants/$1.service
-    systemctl enable $1 
+    systemctl enable $1
 }
 
 #
@@ -56,14 +56,14 @@ config_apt () {
 
     overlay_file "/etc/apt/sources.list"
     overlay_file "/etc/apt/apt.conf.d/70debconf"
-    
+
     highlight "updating apt, please wait..."
     apt-get update &> /dev/null
     echo "done"
 }
 
 #
-# 
+#
 #
 install_basic_commands () {
 
@@ -84,11 +84,11 @@ install_basic_commands () {
 prepare_layout() {
 
     #
-    #  this path is not in PATH in chrooted environment 
+    #  this path is not in PATH in chrooted environment
     #
     export PATH=/usr/local/sbin:$PATH
 
-    banner "prepare layout" 
+    banner "prepare layout"
 
     # mmcblk0p2 is already mounted at /mininas
 
@@ -100,8 +100,8 @@ prepare_layout() {
 
     # dont do this now, mysql installer will move the whole folder
     # mkdir -p /etc/mininas/data/mysql
-  
-    highlight "make mininas folder"  
+
+    highlight "make mininas folder"
     mkdir -p /etc/mininas
     mkdir -p /etc/mininas/templates
     # template files are deployed by individual functions
@@ -129,7 +129,7 @@ install_basic_files () {
     echo "done"
 
     highlight "deploy volume.json"
-    overlay_file "/etc/mininas/data/configs/volume.json"    
+    overlay_file "/etc/mininas/data/configs/volume.json"
     echo "done"
 
     highlight "deplay chassis file"
@@ -161,14 +161,14 @@ install_basic_files () {
     echo "done"
 
     highlight "deploy system service"
-    # enabled by default    
+    # enabled by default
     install_service initial_pool_refresh
     enable_service initial_pool_refresh
     echo "done"
 }
 
 #
-# install samba as early as possible since 
+# install samba as early as possible since
 # all non-system users has samba account
 #
 install_samba () {
@@ -178,7 +178,7 @@ install_samba () {
     highlight "installing samba, please wait..."
     apt-get -y install samba &> /dev/null
     echo "done"
-    
+
     highlight "put conf, json, and template files"
     overlay_file "/etc/samba/smb.conf"
     overlay_file "/etc/mininas/data/configs/samba.json"
@@ -213,7 +213,7 @@ create_users_and_groups () {
     # change UID_MAX to 2000", does NOT work
     # overlay_file "/etc/login.defs"
 
-    # highlight "create admin as uid 1000"    
+    # highlight "create admin as uid 1000"
     # adduser --uid 1000 --gecos ",,," --disabled-password --disabled-login --no-create-home admin
     # echo "admin:123456" | chpasswd
 
@@ -249,7 +249,6 @@ create_users_and_groups () {
     echo "done"
 }
 
-
 #
 # install ssh, enable root login
 #
@@ -284,13 +283,13 @@ install_ssdp () {
 }
 
 #
-# keys and leds service, also control fan speed 
+# keys and leds service, also control fan speed
 #
 install_keys_and_leds () {
 
     banner "install keys-and-leds service"
 
-    local FILE="/usr/local/sbin/powerkey_chk.sh"    
+    local FILE="/usr/local/sbin/powerkey_chk.sh"
 
     overlay_file $FILE
     chmod a+x $FILE
@@ -309,7 +308,7 @@ install_updated_starter () {
     banner "install updated-starter service"
 
     local FILE="/usr/local/sbin/updated_starter.sh"
-    
+
     overlay_file $FILE
     chmod a+x $FILE
 
@@ -348,7 +347,6 @@ install_mysql () {
     echo "done"
 }
 
-
 install_proftpd () {
 
     banner "install proftpd"
@@ -358,7 +356,7 @@ install_proftpd () {
     highlight "installing proftpd, please wait..."
     apt-get -y install proftpd-basic &> /dev/null
     echo "done"
-    
+
     highlight "overlay conf, json, and template files"
     overlay_file "/etc/proftpd/proftpd.conf"
     overlay_file "/etc/mininas/data/configs/proftpd.json"
@@ -413,14 +411,14 @@ install_python_packages () {
 
 install_mininas_app () {
 
-    banner "install mininas"    
+    banner "install mininas"
 
     highlight "untar files"
     mkdir -p /srv/mini
     tar xzf /overlay/install/aaa.tar.gz -C /srv/mini
     echo "done"
 
-    highlight "initialize database"    
+    highlight "initialize database"
     # systemctl start mysql does NOT work in chrooted environment
     /etc/init.d/mysql start
 
@@ -430,7 +428,7 @@ install_mininas_app () {
     mysql -u$MYSQL_ROOT -p$MYSQL_PASSWORD << EOF
         CREATE DATABASE mininas DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 EOF
-    # 
+    #
     python /srv/mini/aaa/manage.py makemigrations
     python /srv/mini/aaa/manage.py migrate
 
@@ -445,7 +443,7 @@ EOF
     /etc/init.d/mysql stop
     echo "done"
 
-    highlight "install mininas service"   
+    highlight "install mininas service"
     install_service mininas
     enable_service mininas
     echo "done"
@@ -460,9 +458,9 @@ EOF
     install_service updatedemo_py
     enable_service updatedemo_py
     echo "done"
-    
+
 #    highlight "install automount-disk service"
-#    install_service automount-disk 
+#    install_service automount-disk
 #    enable_service automount-disk
 #    echo "done"
 
@@ -470,7 +468,6 @@ EOF
 #    install_service rename-hostname
 #    enable_service rename-hostname
 #    echo "done"
-
 }
 
 install_thunder() {
@@ -513,7 +510,7 @@ install_thunder() {
 }
 
 install_dlna () {
-    
+
     banner "install minidlna"
 
     highlight "install minidlna and avahi daemon, please wait..."
@@ -540,7 +537,6 @@ install_netatalk() {
 
     # install_service netatalk
 	highlight "install packages required, please wait..."
-	
 	apt-get -y install build-essential libevent-dev libssl-dev \
 		libgcrypt11-dev libkrb5-dev libpam0g-dev libwrap0-dev libdb-dev \
 		libtdb-dev libmysqlclient-dev avahi-daemon libavahi-client-dev \
@@ -553,7 +549,7 @@ install_netatalk() {
     cp /overlay/etc/mininas/data/netatalk /etc/mininas/data -r
 	ln -s /etc/mininas/data/netatalk /usr/local/var
     enable_service netatalk
-    
+
     highlight "put  json, and template files"
     overlay_file "/etc/mininas/data/configs/afp.json"
     cp -r /overlay/etc/mininas/templates/netatalk /etc/mininas/templates
@@ -567,7 +563,7 @@ install_qqiot() {
 	local FILE="/usr/local/sbin/mininasqqiot"
 	overlay_file $FILE
 	chmod a+x $FILE
-	
+
 	highlight "install lib"
 	local FILE="/usr/local/lib/libnassdk.so"
 	overlay_file $FILE
@@ -579,7 +575,7 @@ install_qqiot() {
 	local FILE="/etc/mininas/data/qqiot/1700001154.pem"
 	overlay_file $FILE
 	chmod 664 $FILE
-	
+
 	highlight "install qqiot service "
 	install_service qqiot
 	enable_service qqiot
@@ -588,12 +584,12 @@ install_qqiot() {
 install_test()
 {
     banner "install test"
-    highlight "install test files..." 
+    highlight "install test files..."
     mkdir -p /etc/mininas/test
     cp -r /overlay/etc/mininas/test/*  /etc/mininas/test/
     chmod 755 /etc/mininas/test/*
- 
 }
+
 install_kernel() {
 
     banner "install kernel"
@@ -602,10 +598,9 @@ install_kernel() {
     dpkg -i /overlay/install/linux-image-4.3.3.001\+_001_amd64.deb
     echo "done"
 
-    
     highlight "create boot links and cmdline"
-    ln -s vmlinuz-4.3.3.001\+ /boot/bzImage;         
-    ln -s initrd.img-4.3.3.001\+ /boot/ramdisk;      
+    ln -s vmlinuz-4.3.3.001\+ /boot/bzImage;
+    ln -s initrd.img-4.3.3.001\+ /boot/ramdik;
     echo "console=tty0 console=ttyS0,115200 root=/dev/mmcblk0p1 rootwait" > /boot/cmdline
     echo "done"
 }
@@ -649,11 +644,19 @@ enable_systemd_network()
     echo "done"
 }
 
+disable_exim4
+{
+    banner "disable systemd exim4"
+
+    highlight "disable networking exim4"
+    systemctl status exim4.service
+    echo "done"
+}
 
 do_cleanup() {
 
     banner "clean up"
-    
+
     highlight "clean apt cache"
     apt-get clean
     echo "done"
@@ -667,7 +670,7 @@ do_cleanup() {
     echo "done"
 
     # echo "clean manpages"
-    # rm -rf 
+    # rm -rf
 }
 
 
