@@ -1,0 +1,57 @@
+#!/bin/bash
+
+SERIAL=
+MODEL="barcelona"
+ARCH="i386"
+
+UTMPD="/mininas/sysupgrade/tmp"
+SYSU_FILE="/mininas/sysupgrade/tmp/sysupgrade"
+
+prepare_sn_rev () {
+
+    # /mininas/sysupgrade/curr_version is immutable
+    REVISION=$( cat /mininas/sysupgrade/curr_version )
+
+    #
+    SERIAL=$( dd if=/dev/mtdblock0 of=file bs=1 skip=1697760 count=11 )
+
+    if [ -z "$SERIAL" ]; then
+        SERIAL="unknown"
+    fi
+}
+
+get_sysupgrade_file () {
+
+    mkdir -p $UTMPD
+
+    SYSU_URL="http://sysupgrade.wisnuc.com/NasUpdate/index.aspx?serial=${SERIAL}&model=${MODEL}&revision=${REVISION}"
+    wget -O $SYSU_FILE $SYSU_URL
+
+    if [ -z "$?" ]; then
+        echo "failed to retrieve sysupgrade file"
+        exit 0
+    fi
+}
+
+retriev_next_version () {
+
+    if [ ! -f "$SYSU_FILE" ]; then
+        echo "sysupgrade file not found"
+        exit 0
+    fi
+
+    # retrieve first matching pattern
+    # REVISION 0 0
+    LINE1=$( echo $SYSU_FILE | grep -P "^REVISION +0 +\d+ *$" | head -n 1 )
+    if [ ! -z "$LINE1" ]; then
+
+    fi
+
+        
+}
+
+
+
+
+
+
