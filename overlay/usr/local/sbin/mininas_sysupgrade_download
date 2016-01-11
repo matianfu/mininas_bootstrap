@@ -31,8 +31,10 @@ prepare_sn_rev () {
         SERIAL=$FAKESERIAL
     else
         # get sn from rom
-        SERIAL=$( dd if=/dev/mtdblock0 of=file bs=1 skip=1697760 count=11 )
-        if [ -z "$SERIAL" ]; then SERIAL="unknown"; fi
+        SERIAL=$( dd if=/dev/mtdblock0 bs=1 skip=1697760 count=11 )
+        if [ -z "$SERIAL" ]; then 
+            SERIAL="unknown"; 
+        fi
     fi
 }
 
@@ -67,8 +69,7 @@ retrieve_next_version () {
     fi
 
     # retrieve all matching pattern
-    # REVISION 0 0
-    LINES=$( cat $SYSU_FILE | grep -P "^REVISION +0 +\d+ *$" )
+    LINES=$( cat $SYSU_FILE | grep -P "^REVISION +${REVISION} +\d+ *$" )
     if [ -z "$LINES" ]; then
         echo "revision lines for $REVISION not found"
         exit 0
@@ -76,7 +77,8 @@ retrieve_next_version () {
 
     NEXTVER=$( echo "$LINES" | head -n 1 | awk '{ print $3 }' )
     if [ -z "$NEXTVER" ]; then
-        echo "revision not retrieved"
+        echo "none" > $STATUS_FILE
+        echo "next revision not found"
         exit 0
     fi
 
@@ -93,6 +95,7 @@ retrieve_next_version () {
         exit 0
     fi
 
+    echo "downloading" > $STATUS_FILE
     echo "next_version is $NEXTVER"
 }
 
