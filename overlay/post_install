@@ -13,6 +13,7 @@ install_network
 install_samba
 create_users_and_groups
 
+install_sysupgrade_downloader
 install_ssh
 install_ssdp
 install_keys_and_leds

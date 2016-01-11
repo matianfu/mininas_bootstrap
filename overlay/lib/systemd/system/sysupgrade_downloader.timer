@@ -1,0 +1,9 @@
+[Unit]
+Description=Mininas Sysupgrade Downloader Timer
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=4h
+
+[Install]
+WantedBy=timers.target

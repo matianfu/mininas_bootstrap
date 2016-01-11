@@ -327,6 +327,30 @@ install_ssh () {
 }
 
 #
+#
+#
+install_sysupgrade_downloader () {
+
+    banner "installing sysupgrade downloader"
+
+    highlight "install sysupgrade overlay file"
+    overlay_file /etc/mininas/sysupgrade/curr_version
+    overlay_file /etc/mininas/sysupgrade/next_version
+    overlay_file /etc/mininas/sysupgrade/status
+    echo "done"
+
+    highlight "install sysupgrade_downloader"
+    install_service sysupgrade_downloader
+    enable_service sysupgrade_downloader
+    echo "done"
+
+    highlight "install sysupgrade_downloader timer"
+    overlay_file /lib/systemd/system/sysupgrade_downloader.timer
+    systemctl enable sysupgrade_downloader.timer
+    echo "done"
+}
+
+#
 # install ssdp and unit file
 #
 install_ssdp () {
@@ -669,7 +693,7 @@ install_kernel() {
 
     highlight "create boot links and cmdline"
     ln -s vmlinuz-4.3.3.001\+ /boot/bzImage;
-    ln -s initrd.img-4.3.3.001\+ /boot/ramdik;
+    ln -s initrd.img-4.3.3.001\+ /boot/ramdisk;
     echo "console=tty0 console=ttyS0,115200 root=/dev/mmcblk0p1 rootwait" > /boot/cmdline
     echo "done"
 }
