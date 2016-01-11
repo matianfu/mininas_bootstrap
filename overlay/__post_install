@@ -97,6 +97,9 @@ install_basic_commands () {
     # id : coreutils (which is already installed)
     # vim, tree (for convenience)
     apt-get -y install members libc-bin coreutils vim tree initramfs-tools
+
+    echo "kexec-tools kexec-tools/load_kexec  boolean true" | debconf-set-selections
+    # echo "mysql-server-5.5 mysql-server/root_password password ${MYSQL_PASSWORD}" | debconf-set-selections
     apt-get -y install kexec-tools
     # apt-get -y -t sid install systemd
     echo "done"
@@ -129,6 +132,7 @@ prepare_layout() {
     highlight "make mininas folder"
     mkdir -p /etc/mininas
     mkdir -p /etc/mininas/templates
+    mkdir -p /etc/mininas/sysupgrade
     # template files are deployed by individual functions
     echo "done"
 
