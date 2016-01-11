@@ -4,28 +4,32 @@ SERIAL=
 MODEL="barcelona"
 ARCH="i386"
 
-UTMPD="/mininas/sysupgrade/tmp"
-SYSU_FILE="/mininas/sysupgrade/tmp/sysupgrade"
+UTMPD="/etc/mininas/sysupgrade/tmp"
+SYSU_FILE="/etc/mininas/sysupgrade/tmp/sysupgrade"
 
+#
+# 
+#
 prepare_sn_rev () {
 
     # /mininas/sysupgrade/curr_version is immutable
     REVISION=$( cat /mininas/sysupgrade/curr_version )
 
-    #
+    # get sn from rom
     SERIAL=$( dd if=/dev/mtdblock0 of=file bs=1 skip=1697760 count=11 )
 
-    if [ -z "$SERIAL" ]; then
-        SERIAL="unknown"
-    fi
+    if [ -z "$SERIAL" ]; then SERIAL="unknown"; fi
 }
 
+#
+#
+#
 get_sysupgrade_file () {
 
     mkdir -p $UTMPD
 
     SYSU_URL="http://sysupgrade.wisnuc.com/NasUpdate/index.aspx?serial=${SERIAL}&model=${MODEL}&revision=${REVISION}"
-    wget -O $SYSU_FILE $SYSU_URL
+    curl -o $SYSU_FILE $SYSU_URL
 
     if [ -z "$?" ]; then
         echo "failed to retrieve sysupgrade file"
@@ -33,22 +37,143 @@ get_sysupgrade_file () {
     fi
 }
 
-retriev_next_version () {
+#
+#
+#
+retrieve_next_version () {
 
     if [ ! -f "$SYSU_FILE" ]; then
         echo "sysupgrade file not found"
         exit 0
     fi
 
-    # retrieve first matching pattern
+    # retrieve all matching pattern
     # REVISION 0 0
-    LINE1=$( echo $SYSU_FILE | grep -P "^REVISION +0 +\d+ *$" | head -n 1 )
-    if [ ! -z "$LINE1" ]; then
-
+    LINES=$( echo $SYSU_FILE | grep -P "^REVISION +0 +\d+ *$" )
+    if [ -z "$LINES" ]; then
+        echo "revision lines for $REVISION not found"
+        exit 0
     fi
 
-        
+    NEXTVER=$( echo "$LINES" | head -n 1 | awk '{ print $3 }' )
+    if [ -z "$NEXTVER" ]; then
+        echo "revision not retrieved"
+        exit 0
+    fi
 }
+
+#
+# $1 path
+# $2 url
+# $3 md5
+retrieve_file () {
+
+    local path=$1
+    local url=$2
+    local md5=$3
+
+    if [ -f "$path" ]; then
+        if [ "$md5" = "$( md5sum $path | awk '{ print $1 }' )" ]; then
+            # md5 is good
+            :
+        else
+            rm -rf $path            
+        fi
+    fi
+
+    # retrieve file
+    curl -O $path $url
+
+    if [ "$?" -ne 0 ]; then
+        echo "failed to retrieve file: $url"
+        exit 0
+    fi
+
+    local checksum=$( md5sum $path | awk '{ print $1 }' )
+    if [ "$md5" = "$checksum" ]; then
+        # md5 correct
+        :
+    else
+        rm -rf $path
+        echo "md5 error, retry next time"
+        exit 0
+    fi
+}
+
+#
+#
+#
+populate_dirs () {
+    
+    local lines=$( echo $SYSU_FILE | grep -P "^DIR +${REVISION} +${NEXTVER} +" )
+
+    for line in $lines; do
+
+        dir=$( echo $line | awk '{ print $4 }' )
+
+        if [ -z "$dir" ]; then
+
+            echo "dir directive error in [ $line ]"
+            exit 0
+        fi
+    done
+
+    for line in $lines; do
+
+        dir=$( echo $line | awk '{ print $4 }' )
+
+        mkdir -p $line
+    done
+}
+
+#
+#
+#
+populate_files () {
+
+    local lines=$( echo $SYSU_FILE | grep -P "^FILE +${REVISION} +${NEXTVER} +" )
+
+    for line in $lines; do
+        
+        local path=$(   echo $line | awk '{ print $4 }' )
+        local url=$(    echo $line | awk '{ print $5 }' )
+        local md5=$(    echo $line | awk '{ print $6 }' )
+
+        if [ -z "$path" ] || [ -z "$url" ] || [ -z "$md5" ] ; then
+            echo "error in [ $line ]"
+            exit 0
+        fi
+    done
+
+    for line in $lines; do
+        
+        local path=$(   echo $line | awk '{ print $4 }' )
+        local url=$(    echo $line | awk '{ print $5 }' )
+        local md5=$(    echo $line | awk '{ print $6 }' )
+
+        retrieve_file $path $url $md5
+    done
+}
+
+#
+#
+#
+remove_files () {
+    
+}
+
+prepare_sn_rev
+get_sysupgrade_file
+retrieve_next_version
+
+populate_folders
+populate_files
+remove_files
+
+echo "ready" > 
+
+
+
 
 
 

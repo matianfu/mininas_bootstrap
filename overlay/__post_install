@@ -47,6 +47,19 @@ enable_service () {
     systemctl enable $1 
 }
 
+# $1 file or folder name (under /etc)
+link_etc_path () {
+
+    mv /etc/$1 /etc/mininas/data/etc/
+    ln -s /etc/mininas/data/etc/$1 /etc/$1
+}
+
+# $1 file or folder name (under /var/lib)
+link_varlib_path () {
+
+    mv /var/lib/$1 /etc/mininas/data/etc
+}
+
 #
 # apt source list, default, and proxy
 #
@@ -112,9 +125,27 @@ prepare_layout() {
     echo "done"
 
     highlight "make data/configs folder"
+    mkdir -p /etc/mininas/data/etc
+    mkdir -p /etc/mininas/data/var/lib
     mkdir -p /etc/mininas/data/configs
     mkdir -p /etc/mininas/data/qqiot
     echo "done"
+}
+
+
+#
+#
+#
+link_account_files () {
+
+    #
+    # this must be done after layout prepared
+    #    
+    link_etc_file passwd
+    link_etc_file shadow
+    link_etc_file group
+    link_etc_file gshadow
+
 }
 
 #
@@ -648,7 +679,6 @@ enable_systemd_network()
     ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
     echo "done"
 }
-
 
 do_cleanup() {
 
