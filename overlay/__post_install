@@ -50,12 +50,22 @@ enable_service () {
 # $1 file or folder name (under /etc)
 link_etc_file () {
 
+    if [ -z "$1" ]; then
+        echo "link_etc_file need one parameter"
+        exit
+    fi
+
     mv /etc/$1 $DATAROOT/etc/
     ln -s $DATAROOT/etc/$1 /etc/$1
 }
 
 # $1 file or folder name (under /var/lib)
 link_varlib_file () {
+
+    if [ -z "$1" ]; then
+        echo "link_varlib_file need on parameter"
+        exit
+    fi
 
     mv /var/lib/$1 $DATAROOT/var/lib
     ln -s $DATAROOT/var/lib/$1 /var/lib/$1
@@ -127,8 +137,9 @@ prepare_layout() {
     echo "done"
 
     highlight "make data/configs folder"
-    mkdir -p /etc/mininas/data/etc
-    mkdir -p /etc/mininas/data/var/lib
+    mkdir -p /etc/mininas/data/root
+    mkdir -p /etc/mininas/data/root/etc
+    mkdir -p /etc/mininas/data/root/var/lib
     mkdir -p /etc/mininas/data/configs
     mkdir -p /etc/mininas/data/qqiot
     echo "done"
@@ -136,18 +147,19 @@ prepare_layout() {
 
 
 #
-#
+# sadly, these files can not be symlinked
 #
 link_account_files () {
 
     #
     # this must be done after layout prepared
     #    
-    link_etc_file passwd
-    link_etc_file shadow
-    link_etc_file group
-    link_etc_file gshadow
+    # link_etc_file passwd
+    # link_etc_file shadow
+    # link_etc_file group
+    # link_etc_file gshadow
 
+    :
 }
 
 #
@@ -310,7 +322,7 @@ install_ssh () {
     echo "done"
 
     highlight "link ssh etc folder"
-    link_etc_file  
+    link_etc_file ssh
     echo "done"
 }
 

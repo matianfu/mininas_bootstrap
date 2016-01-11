@@ -2,23 +2,38 @@
 
 SERIAL=
 MODEL="barcelona"
-ARCH="i386"
+ARCH="amd64"
 
-UTMPD="/etc/mininas/sysupgrade/tmp"
-SYSU_FILE="/etc/mininas/sysupgrade/tmp/sysupgrade"
+UTMPD="$TESTROOT/etc/mininas/sysupgrade/tmp"
+SYSU_FILE="$TESTROOT/etc/mininas/sysupgrade/tmp/sysupgrade"
+
+CURR_FILE="$TESTROOT/etc/mininas/sysupgrade/curr_version"
+NEXT_FILE="$TESTROOT/etc/mininas/sysupgrade/next_version"
+STATUS_FILE="$TESTROOT/etc/mininas/sysupgrade/status"
+
+FAKESERIAL="801D0900041"
 
 #
 # 
 #
 prepare_sn_rev () {
 
+    if [ ! -e $TESTROOT/etc/mininas/sysupgrade/curr_version ]; then
+        echo "curr_version file missing"
+        exit 0
+    fi
+
     # /mininas/sysupgrade/curr_version is immutable
-    REVISION=$( cat /mininas/sysupgrade/curr_version )
+    REVISION=$( cat $TESTROOT/etc/mininas/sysupgrade/curr_version )
 
-    # get sn from rom
-    SERIAL=$( dd if=/dev/mtdblock0 of=file bs=1 skip=1697760 count=11 )
 
-    if [ -z "$SERIAL" ]; then SERIAL="unknown"; fi
+    if [ ! -z "$TESTROOT" ]; then
+        SERIAL=$FAKESERIAL
+    else
+        # get sn from rom
+        SERIAL=$( dd if=/dev/mtdblock0 of=file bs=1 skip=1697760 count=11 )
+        if [ -z "$SERIAL" ]; then SERIAL="unknown"; fi
+    fi
 }
 
 #
@@ -28,12 +43,16 @@ get_sysupgrade_file () {
 
     mkdir -p $UTMPD
 
-    SYSU_URL="http://sysupgrade.wisnuc.com/NasUpdate/index.aspx?serial=${SERIAL}&model=${MODEL}&revision=${REVISION}"
-    curl -o $SYSU_FILE $SYSU_URL
+    rm -rf "$SYSU_FILE"
 
-    if [ -z "$?" ]; then
+    SYSU_URL="http://sysupgrade.wisnuc.com/NasUpdate/index.aspx?serial=${SERIAL}&model=${MODEL}&revision=${REVISION}"
+    curl -o "$SYSU_FILE" "$SYSU_URL"
+
+    if [ "$?" -ne 0 ]; then
         echo "failed to retrieve sysupgrade file"
         exit 0
+    else
+        echo "sysupgrade file retrieved successfully"
     fi
 }
 
@@ -42,14 +61,14 @@ get_sysupgrade_file () {
 #
 retrieve_next_version () {
 
-    if [ ! -f "$SYSU_FILE" ]; then
+    if [ ! -e "$SYSU_FILE" ]; then
         echo "sysupgrade file not found"
         exit 0
     fi
 
     # retrieve all matching pattern
     # REVISION 0 0
-    LINES=$( echo $SYSU_FILE | grep -P "^REVISION +0 +\d+ *$" )
+    LINES=$( cat $SYSU_FILE | grep -P "^REVISION +0 +\d+ *$" )
     if [ -z "$LINES" ]; then
         echo "revision lines for $REVISION not found"
         exit 0
@@ -60,6 +79,59 @@ retrieve_next_version () {
         echo "revision not retrieved"
         exit 0
     fi
+
+    ISINT=
+    for i in $(seq 0 10000); do
+        if [ "$i" -eq "$NEXTVER" ]; then
+            ISINT="yes"
+            break
+        fi
+    done
+
+    if [ -z "$ISINT" ]; then
+        echo "$NEXTVER is not an integer, quit."
+        exit 0
+    fi
+
+    echo "next_version is $NEXTVER"
+}
+
+#
+#
+#
+populate_dirs () {
+    
+    local lines=$( cat $SYSU_FILE | grep -P "^DIR +${REVISION} +${NEXTVER} +" )
+
+    if [ -z "$lines" ]; then
+        echo "no lines for dirs, this sounds impossible, quit"
+        exit 0
+    fi
+
+    # dry run
+    while read -r line; do
+
+        dir=$( echo $line | awk '{ print $4 }' )
+
+        if [ -z "$dir" ]; then
+            echo "dir directive error in [ $line ]"
+            exit 0
+        fi
+
+    done <<< "$lines"
+
+    while read -r line; do
+
+        dir=$( echo $line | awk '{ print $4 }' )
+        mkdir -p ${TESTROOT}/$dir
+        if [ "$?" -ne 0 ]; then           
+            echo "fail to mkdir ${TESTROOT}/$dir"
+            exit 0
+        else
+            echo "mkdir: ${TESTROOT}/$dir" 
+        fi        
+
+    done <<< "$lines"
 }
 
 #
@@ -72,58 +144,36 @@ retrieve_file () {
     local url=$2
     local md5=$3
 
-    if [ -f "$path" ]; then
-        if [ "$md5" = "$( md5sum $path | awk '{ print $1 }' )" ]; then
+    if [ -e "${TESTROOT}/$path" ]; then
+
+        local checksum="$( md5sum ${TESTROOT}/$path | awk '{ print $1 }' )"
+        if [ "$md5" = "$checksum" ]; then
             # md5 is good
-            :
+            echo "existing file ${TESTROOT}/$path has good md5 checksum, skip download"
+            return
         else
-            rm -rf $path            
+            echo "existing file ${TESTROOT}/$path has bad md5 checksu, delete and download again"
+            rm -rf ${TESTROOT}/$path            
         fi
     fi
 
-    # retrieve file
-    curl -O $path $url
+    # retrieve file, double quote critical
+    echo "retrieving $url"
+    curl -o ${TESTROOT}/$path "$url"
 
-    if [ "$?" -ne 0 ]; then
-        echo "failed to retrieve file: $url"
-        exit 0
-    fi
+    # curl's exit code clueless, always zero
+    # test if file exists meaningless, since it get an html page when file does not exist.
+    echo "calculating checksum for ${TESTROOT}/$path ..."
 
-    local checksum=$( md5sum $path | awk '{ print $1 }' )
+    local checksum=$( md5sum ${TESTROOT}/$path | awk '{ print $1 }' )
     if [ "$md5" = "$checksum" ]; then
         # md5 correct
-        :
+        echo "md5 checksum good"
     else
-        rm -rf $path
-        echo "md5 error, retry next time"
+        # rm -rf ${TESTROOT}/$path
+        echo "md5 checksum bad, file deleted, will retry next time"
         exit 0
     fi
-}
-
-#
-#
-#
-populate_dirs () {
-    
-    local lines=$( echo $SYSU_FILE | grep -P "^DIR +${REVISION} +${NEXTVER} +" )
-
-    for line in $lines; do
-
-        dir=$( echo $line | awk '{ print $4 }' )
-
-        if [ -z "$dir" ]; then
-
-            echo "dir directive error in [ $line ]"
-            exit 0
-        fi
-    done
-
-    for line in $lines; do
-
-        dir=$( echo $line | awk '{ print $4 }' )
-
-        mkdir -p $line
-    done
 }
 
 #
@@ -131,28 +181,35 @@ populate_dirs () {
 #
 populate_files () {
 
-    local lines=$( echo $SYSU_FILE | grep -P "^FILE +${REVISION} +${NEXTVER} +" )
+    local lines=$( cat $SYSU_FILE | grep -P "^FILE +${REVISION} +${NEXTVER} +" )
 
-    for line in $lines; do
+    if [ -z "$lines" ]; then
+        echo "no line for files, this seems to be impossible, quit"
+        exit 0
+    fi
+
+    # dry run
+    while read -r line; do
         
         local path=$(   echo $line | awk '{ print $4 }' )
         local url=$(    echo $line | awk '{ print $5 }' )
         local md5=$(    echo $line | awk '{ print $6 }' )
 
         if [ -z "$path" ] || [ -z "$url" ] || [ -z "$md5" ] ; then
-            echo "error in [ $line ]"
+            echo "file directive error in [ $line ]"
             exit 0
         fi
-    done
+    done <<< "$lines"
 
-    for line in $lines; do
+    while read -r line; do
         
         local path=$(   echo $line | awk '{ print $4 }' )
         local url=$(    echo $line | awk '{ print $5 }' )
         local md5=$(    echo $line | awk '{ print $6 }' )
 
-        retrieve_file $path $url $md5
-    done
+        retrieve_file "$path" "$url" "$md5"
+
+    done <<< "$lines"
 }
 
 #
@@ -160,17 +217,51 @@ populate_files () {
 #
 remove_files () {
     
+    local lines=$( cat $SYSU_FILE | grep -P "^RM +${REVISION} +${NEXTVER} +" )
+
+    if [ -z "$lines" ]; then
+        return
+    fi
+
+    # dry run
+    while read -r line; do
+        
+        local path=$( echo $line | awk '{ print $4 }' )
+        if [ -z "$path" ]; then
+            echo "rm directive error in [ $line ]"
+            exit 0
+        fi
+
+    done <<< "$lines"
+    
+    while read -r line; do
+
+        local path=$( echo $line | awk '{ print $4 }' )
+
+        echo "rm ${TESTROOT}/$path"
+        rm -rf ${TESTROOT}/$path  
+        
+    done <<< "$lines" 
 }
+
+STATUS=$(cat $STATUS_FILE)
+
+if [ "$STATUS" = "ready" ]; then
+    echo "update is ready, quit"
+    exit 0
+fi
 
 prepare_sn_rev
 get_sysupgrade_file
 retrieve_next_version
 
-populate_folders
+populate_dirs
 populate_files
 remove_files
 
-echo "ready" > 
+echo "ready" > ${STATUS_FILE}
+
+
 
 
 
