@@ -2,10 +2,12 @@
 
 source /overlay/__post_install
 
+prepare_layout
+link_account_files
+
 config_apt
 install_basic_commands
 
-prepare_layout
 install_basic_files
 install_network
 install_samba

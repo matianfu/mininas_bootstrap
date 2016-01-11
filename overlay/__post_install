@@ -8,7 +8,7 @@
 # lewis.ma@winsuntech.cn
 #
 
-
+DATAROOT=/etc/mininas/data/root
 THUNDER_UID=990
 
 DASH="----------------------------------------"
@@ -48,16 +48,17 @@ enable_service () {
 }
 
 # $1 file or folder name (under /etc)
-link_etc_path () {
+link_etc_file () {
 
-    mv /etc/$1 /etc/mininas/data/etc/
-    ln -s /etc/mininas/data/etc/$1 /etc/$1
+    mv /etc/$1 $DATAROOT/etc/
+    ln -s $DATAROOT/etc/$1 /etc/$1
 }
 
 # $1 file or folder name (under /var/lib)
-link_varlib_path () {
+link_varlib_file () {
 
-    mv /var/lib/$1 /etc/mininas/data/etc
+    mv /var/lib/$1 $DATAROOT/var/lib
+    ln -s $DATAROOT/var/lib/$1 /var/lib/$1
 }
 
 #
@@ -86,6 +87,7 @@ install_basic_commands () {
     # id : coreutils (which is already installed)
     # vim, tree (for convenience)
     apt-get -y install members libc-bin coreutils vim tree initramfs-tools
+    apt-get -y install kexec-tools
     # apt-get -y -t sid install systemd
     echo "done"
 }
@@ -217,6 +219,13 @@ install_samba () {
     # overlay_file "/etc/mininas/templates/samba/global"
     # overlay_file "/etc/mininas/templates/samba/share"
 
+    highlight "link samba etc folder"
+    link_etc_file samba
+    echo "done"
+
+    highlight "link samba varlib folder"
+    link_varlib_file samba
+
     cp -r /overlay/etc/mininas/templates/samba /etc/mininas/templates
     echo "done"
 }
@@ -227,6 +236,12 @@ install_network () {
 
     highlight "put conf, json, and template files"
     overlay_file "/etc/network/interfaces"
+
+    # link only interfaces file
+    mkdir -p $DATAROOT/etc/network
+    mv /etc/network/interfaces $DATAROOT/etc/network
+    ln -s $DATAROOT/etc/network/interfaces /etc/network/interfaces
+
     overlay_file "/etc/mininas/data/configs/network.json"
     overlay_file "/etc/mininas/data/configs/network.json.default"
 
@@ -293,6 +308,10 @@ install_ssh () {
     echo "done"
 
     overlay_file "/etc/ssh/sshd_config"
+    echo "done"
+
+    highlight "link ssh etc folder"
+    link_etc_file  
     echo "done"
 }
 
@@ -371,9 +390,12 @@ install_mysql () {
 
     highlight "move mysql database location and update my.cnf"
     # move folder
-    mv /var/lib/mysql /etc/mininas/data
+    # mv /var/lib/mysql /etc/mininas/data
+    # change to varlib link
+    link_varlib_file mysql
     # this is important!
-    chown mysql:mysql /etc/mininas/data/mysql
+    chown mysql:mysql $DATAROOT/var/lib/mysql
+    chmod 700 $DATAROOT/var/lib/mysql
 
     overlay_file /etc/mysql/my.cnf
     echo "done"
@@ -392,6 +414,8 @@ install_proftpd () {
     
     highlight "overlay conf, json, and template files"
     overlay_file "/etc/proftpd/proftpd.conf"
+    link_etc_file proftpd
+
     overlay_file "/etc/mininas/data/configs/proftpd.json"
     mkdir -p "/etc/mininas/templates/proftpd"
     overlay_file "/etc/mininas/templates/proftpd/default"
@@ -553,6 +577,8 @@ install_dlna () {
 
     highlight "install conf, json, and template files"
     overlay_file "/etc/minidlna.conf"
+    link_etc_file minidlna.conf
+
     overlay_file "/etc/mininas/data/configs/minidlna.json"
 
     mkdir -p "/etc/mininas/templates/minidlna"
@@ -690,6 +716,10 @@ do_cleanup() {
 
     highlight "clean udev eth rules"
     rm -rf /etc/udev/rules.d/70-persistent-net.rules
+    echo "done"
+
+    highlight "remove exim4"
+    apt-get -y --purge remove exim4 exim4-base exim4-config exim4-daemon-light
     echo "done"
 
     highlight "clean apt proxy"
