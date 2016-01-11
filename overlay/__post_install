@@ -345,7 +345,8 @@ install_sysupgrade_downloader () {
 
     highlight "install sysupgrade_downloader"
     install_service sysupgrade_downloader
-    enable_service sysupgrade_downloader
+    # static service, no enable
+    # enable_service sysupgrade_downloader
     echo "done"
 
     highlight "install sysupgrade_downloader timer"
