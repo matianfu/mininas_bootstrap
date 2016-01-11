@@ -32,6 +32,7 @@ install_thunder
 install_test
 install_kernel
 # enable_systemd_network
+disable_exim4
 do_cleanup 
 
 
