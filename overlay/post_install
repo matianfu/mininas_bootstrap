@@ -27,9 +27,9 @@ install_python_packages
 install_mininas_app    
 
 install_thunder
-#install_dlna
+install_dlna
 #install_qqiot
-#install_netatalk
+install_netatalk
 install_test
 install_kernel
 # enable_systemd_network

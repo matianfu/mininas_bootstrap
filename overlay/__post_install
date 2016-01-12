@@ -71,6 +71,18 @@ link_varlib_file () {
     ln -s $DATAROOT/var/lib/$1 /var/lib/$1
 }
 
+# $1 file or folder name (under /usr/local/var)
+link_usr_local_var_file(){
+	
+	if [ -z "$1" ]; then
+		echo "link_usr_local_var_file need parameter"
+		exit
+	fi
+
+	mv /usr/local/var/$1 $DATAROOT/usr/local/var
+	ln -s $DATAROOT/usr/local/var/$1 /usr/local/var/$1
+}
+
 #
 # apt source list, default, and proxy
 #
@@ -146,6 +158,7 @@ prepare_layout() {
     mkdir -p /etc/mininas/data/root/var/lib
     mkdir -p /etc/mininas/data/configs
     mkdir -p /etc/mininas/data/qqiot
+    mkdir -p /etc/mininas/data/root/usr/local/var
     echo "done"
 }
 
@@ -641,11 +654,14 @@ install_netatalk() {
 		libldap2-dev libcrack2-dev systemtap-sdt-dev libdbus-1-dev libdbus-glib-1-dev \
 		libglib2.0-dev tracker libtracker-sparql-1.0-dev libtracker-miner-1.0-dev  &> /dev/null
 
-	tar xzf /overlay/install/netatalk-3.1.8.tar.gz -C /
+	tar xzf /overlay/install/netatalk-3.1.8.tar.gz -C / &> /dev/null
+	echo "tar done"
 	ldconfig
-	rm -rf /usr/local/var/netatalk
-    cp /overlay/etc/mininas/data/netatalk /etc/mininas/data -r
-	ln -s /etc/mininas/data/netatalk /usr/local/var
+#	rm -rf /usr/local/var/netatalk
+#   cp /overlay/etc/mininas/data/netatalk /etc/mininas/data -r
+#	mv /usr/local/var/netatalk $DATAROOT/usr/local/var
+#	ln -s $DATAROOT/usr/local/var/netatalk /usr/local/var
+	link_usr_local_var_file netatalk
     enable_service netatalk
 
     highlight "put  json, and template files"
