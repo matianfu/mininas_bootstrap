@@ -5,6 +5,8 @@
 #
 mininas_pool_refresh
 
+mininas_get_product_serial_number
+
 #
 # if pool mounted, snapshot
 #
