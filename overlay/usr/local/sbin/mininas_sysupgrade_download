@@ -67,7 +67,7 @@ retrieve_upgrade_info () {
 #
 retrieve_and_deploy () {
 
-    echo "dowloading" > $STATUS_FILE
+    echo "downloading" > $STATUS_FILE
     
     local line=$( cat $SYSU_FILE | grep -P "^BOOT +${REVISION} +${NEXTVER} +" | head -n 1 )
     local url=$( echo "$line" | awk '{ print $4 }' )
@@ -93,7 +93,9 @@ retrieve_and_deploy () {
         rm -rf ${TESTROOT}/mininas/boot
         rm -rf ${TESTROOT}/${UTMPD}/boot.tar
         exit_status_none "failed to untar boot.tar, file deleted, retry later"
-    fi    
+    fi
+
+    echo "ready" > $STATUS_FILE
 }
 
 #
