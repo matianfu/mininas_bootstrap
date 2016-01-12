@@ -95,6 +95,8 @@ retrieve_and_deploy () {
         exit_status_none "failed to untar boot.tar, file deleted, retry later"
     fi
 
+    # remove tmp folder after success
+    rm -rf $UTMPD
     echo "ready" > $STATUS_FILE
 }
 
