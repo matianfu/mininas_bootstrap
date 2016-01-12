@@ -1,8 +1,6 @@
 [%%SMB_FOLDER_NAME%%]
    comment = %%SMB_COMMENT%%
    path = %%SMB_FOLDER_PATH%%
-   read only = yes
-   guest ok = no
    available = %%SMB_FOLDER_AVAIL%%
    force user = admin
    force group = smbshare%%SID%%
