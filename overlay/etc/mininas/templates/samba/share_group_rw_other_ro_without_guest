@@ -6,7 +6,7 @@
    available = %%SMB_FOLDER_AVAIL%%
    force user = admin
    force group = smbshare%%SID%%
-   valid users = +smbshare%%SID%% +smbshare%%SID%%ro
+   valid users = +users
    write list = +smbshare%%SID%%
    create mask = 0644
    directory mask = 0755
