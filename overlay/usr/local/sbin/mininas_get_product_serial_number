@@ -1,0 +1,11 @@
+#!/bin/bash
+
+DASH=-------------------------------------------------
+
+mkdir -p /run/mininas/system
+
+echo "$DASH"
+echo "Getting Product Serial Number... ..."
+dd if=/dev/mtdblock0 bs=1 skip=1697760 count=11 > /run/mininas/system/product_serial_no
+echo "Done!"
+echo "$DASH"
