@@ -1,5 +1,15 @@
 #!/bin/bash
 
+if [ ! -e /mininas/boot/bzImage ]; then
+
+    # clean status
+    echo "none" > /etc/mininas/sysupgrade/status
+    exit 1
+fi
+
+# save ip addr
+echo $( ifconfig eth0 2>/dev/null | awk '/inet addr:/ {print $2}' | sed 's/addr://' ) > /mininas/boot/ipaddr
+
 echo "console=tty0 console=ttyS0,115200" > /mininas/boot/cmdline
 kexec -l /mininas/boot/bzImage --append="console=tty0 console=ttyS0,115200"
 kexec -e
