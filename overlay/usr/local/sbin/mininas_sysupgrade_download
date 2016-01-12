@@ -1,0 +1,276 @@
+#!/bin/bash
+
+SERIAL=
+MODEL="barcelona"
+ARCH="amd64"
+
+UTMPD="$TESTROOT/etc/mininas/sysupgrade/tmp"
+SYSU_FILE="$TESTROOT/etc/mininas/sysupgrade/tmp/sysupgrade"
+
+CURR_FILE="$TESTROOT/etc/mininas/sysupgrade/curr_version"
+NEXT_FILE="$TESTROOT/etc/mininas/sysupgrade/next_version"
+STATUS_FILE="$TESTROOT/etc/mininas/sysupgrade/status"
+
+FAKESERIAL="801D0900041"
+
+#
+# 
+#
+prepare_sn_rev () {
+
+    if [ ! -e $TESTROOT/etc/mininas/sysupgrade/curr_version ]; then
+        echo "curr_version file missing"
+        exit 0
+    fi
+
+    # /mininas/sysupgrade/curr_version is immutable
+    REVISION=$( cat $TESTROOT/etc/mininas/sysupgrade/curr_version )
+
+
+    if [ ! -z "$TESTROOT" ]; then
+        SERIAL=$FAKESERIAL
+    else
+        # get sn from rom
+        SERIAL=$( dd if=/dev/mtdblock0 bs=1 skip=1697760 count=11 )
+        if [ -z "$SERIAL" ]; then 
+            SERIAL="unknown"; 
+        fi
+    fi
+}
+
+#
+#
+#
+get_sysupgrade_file () {
+
+    mkdir -p $UTMPD
+
+    rm -rf "$SYSU_FILE"
+
+    SYSU_URL="http://sysupgrade.wisnuc.com/NasUpdate/index.aspx?serial=${SERIAL}&model=${MODEL}&revision=${REVISION}"
+    curl -o "$SYSU_FILE" "$SYSU_URL"
+
+    if [ "$?" -ne 0 ]; then
+        echo "failed to retrieve sysupgrade file"
+        exit 0
+    else
+        echo "sysupgrade file retrieved successfully"
+    fi
+}
+
+#
+#
+#
+retrieve_next_version () {
+
+    if [ ! -e "$SYSU_FILE" ]; then
+        echo "sysupgrade file not found"
+        exit 0
+    fi
+
+    # retrieve all matching pattern
+    LINES=$( cat $SYSU_FILE | grep -P "^REVISION +${REVISION} +\d+ *$" )
+    if [ -z "$LINES" ]; then
+        echo "revision lines for $REVISION not found"
+        exit 0
+    fi
+
+    NEXTVER=$( echo "$LINES" | head -n 1 | awk '{ print $3 }' )
+    if [ -z "$NEXTVER" ]; then
+        echo "none" > $STATUS_FILE
+        echo "next revision not found"
+        exit 0
+    fi
+
+    ISINT=
+    for i in $(seq 0 10000); do
+        if [ "$i" -eq "$NEXTVER" ]; then
+            ISINT="yes"
+            break
+        fi
+    done
+
+    if [ -z "$ISINT" ]; then
+        echo "$NEXTVER is not an integer, quit."
+        exit 0
+    fi
+
+    echo "downloading" > $STATUS_FILE
+    echo "next_version is $NEXTVER"
+}
+
+#
+#
+#
+populate_dirs () {
+    
+    local lines=$( cat $SYSU_FILE | grep -P "^DIR +${REVISION} +${NEXTVER} +" )
+
+    if [ -z "$lines" ]; then
+        echo "no lines for dirs, this sounds impossible, quit"
+        exit 0
+    fi
+
+    # dry run
+    while read -r line; do
+
+        dir=$( echo $line | awk '{ print $4 }' )
+
+        if [ -z "$dir" ]; then
+            echo "dir directive error in [ $line ]"
+            exit 0
+        fi
+
+    done <<< "$lines"
+
+    while read -r line; do
+
+        dir=$( echo $line | awk '{ print $4 }' )
+        mkdir -p ${TESTROOT}/$dir
+        if [ "$?" -ne 0 ]; then           
+            echo "fail to mkdir ${TESTROOT}/$dir"
+            exit 0
+        else
+            echo "mkdir: ${TESTROOT}/$dir" 
+        fi        
+
+    done <<< "$lines"
+}
+
+#
+# $1 path
+# $2 url
+# $3 md5
+retrieve_file () {
+
+    local path=$1
+    local url=$2
+    local md5=$3
+
+    if [ -e "${TESTROOT}/$path" ]; then
+
+        local checksum="$( md5sum ${TESTROOT}/$path | awk '{ print $1 }' )"
+        if [ "$md5" = "$checksum" ]; then
+            # md5 is good
+            echo "existing file ${TESTROOT}/$path has good md5 checksum, skip download"
+            return
+        else
+            echo "existing file ${TESTROOT}/$path has bad md5 checksu, delete and download again"
+            rm -rf ${TESTROOT}/$path            
+        fi
+    fi
+
+    # retrieve file, double quote critical
+    echo "retrieving $url"
+    curl -o ${TESTROOT}/$path "$url"
+
+    # curl's exit code clueless, always zero
+    # test if file exists meaningless, since it get an html page when file does not exist.
+    echo "calculating checksum for ${TESTROOT}/$path ..."
+
+    local checksum=$( md5sum ${TESTROOT}/$path | awk '{ print $1 }' )
+    if [ "$md5" = "$checksum" ]; then
+        # md5 correct
+        echo "md5 checksum good"
+    else
+        # rm -rf ${TESTROOT}/$path
+        echo "md5 checksum bad, file deleted, will retry next time"
+        exit 0
+    fi
+}
+
+#
+#
+#
+populate_files () {
+
+    local lines=$( cat $SYSU_FILE | grep -P "^FILE +${REVISION} +${NEXTVER} +" )
+
+    if [ -z "$lines" ]; then
+        echo "no line for files, this seems to be impossible, quit"
+        exit 0
+    fi
+
+    # dry run
+    while read -r line; do
+        
+        local path=$(   echo $line | awk '{ print $4 }' )
+        local url=$(    echo $line | awk '{ print $5 }' )
+        local md5=$(    echo $line | awk '{ print $6 }' )
+
+        if [ -z "$path" ] || [ -z "$url" ] || [ -z "$md5" ] ; then
+            echo "file directive error in [ $line ]"
+            exit 0
+        fi
+    done <<< "$lines"
+
+    while read -r line; do
+        
+        local path=$(   echo $line | awk '{ print $4 }' )
+        local url=$(    echo $line | awk '{ print $5 }' )
+        local md5=$(    echo $line | awk '{ print $6 }' )
+
+        retrieve_file "$path" "$url" "$md5"
+
+    done <<< "$lines"
+}
+
+#
+#
+#
+remove_files () {
+    
+    local lines=$( cat $SYSU_FILE | grep -P "^RM +${REVISION} +${NEXTVER} +" )
+
+    if [ -z "$lines" ]; then
+        return
+    fi
+
+    # dry run
+    while read -r line; do
+        
+        local path=$( echo $line | awk '{ print $4 }' )
+        if [ -z "$path" ]; then
+            echo "rm directive error in [ $line ]"
+            exit 0
+        fi
+
+    done <<< "$lines"
+    
+    while read -r line; do
+
+        local path=$( echo $line | awk '{ print $4 }' )
+
+        echo "rm ${TESTROOT}/$path"
+        rm -rf ${TESTROOT}/$path  
+        
+    done <<< "$lines" 
+}
+
+STATUS=$(cat $STATUS_FILE)
+
+if [ "$STATUS" = "ready" ]; then
+    echo "update is ready, quit"
+    exit 0
+fi
+
+prepare_sn_rev
+get_sysupgrade_file
+retrieve_next_version
+
+populate_dirs
+populate_files
+remove_files
+
+echo "ready" > ${STATUS_FILE}
+
+
+
+
+
+
+
+
+
+
+

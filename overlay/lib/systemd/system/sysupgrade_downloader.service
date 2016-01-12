@@ -1,0 +1,7 @@
+[Unit]
+Description=Mininas Sysupgrade Downloader
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/mininas_sysupgrade_download
+

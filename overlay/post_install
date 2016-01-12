@@ -2,15 +2,18 @@
 
 source /overlay/__post_install
 
+prepare_layout
+link_account_files
+
 config_apt
 install_basic_commands
 
-prepare_layout
 install_basic_files
 install_network
 install_samba
 create_users_and_groups
 
+install_sysupgrade_downloader
 install_ssh
 install_ssdp
 install_keys_and_leds
@@ -30,7 +33,7 @@ install_thunder
 install_test
 install_kernel
 # enable_systemd_network
-disable_exim4
+# disable_exim4
 do_cleanup 
 
 

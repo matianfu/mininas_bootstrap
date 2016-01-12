@@ -1,0 +1,7 @@
+#!/bin/bash
+
+echo "console=tty0 console=ttyS0,115200" > /mininas/boot/cmdline
+kexec -l /mininas/boot/bzImage --append="console=tty0 console=ttyS0,115200"
+kexec -e
+
+

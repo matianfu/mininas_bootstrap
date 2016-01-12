@@ -8,7 +8,7 @@
 # lewis.ma@winsuntech.cn
 #
 
-
+DATAROOT=/etc/mininas/data/root
 THUNDER_UID=990
 
 DASH="----------------------------------------"
@@ -47,6 +47,30 @@ enable_service () {
     systemctl enable $1
 }
 
+# $1 file or folder name (under /etc)
+link_etc_file () {
+
+    if [ -z "$1" ]; then
+        echo "link_etc_file need one parameter"
+        exit
+    fi
+
+    mv /etc/$1 $DATAROOT/etc/
+    ln -s $DATAROOT/etc/$1 /etc/$1
+}
+
+# $1 file or folder name (under /var/lib)
+link_varlib_file () {
+
+    if [ -z "$1" ]; then
+        echo "link_varlib_file need on parameter"
+        exit
+    fi
+
+    mv /var/lib/$1 $DATAROOT/var/lib
+    ln -s $DATAROOT/var/lib/$1 /var/lib/$1
+}
+
 #
 # apt source list, default, and proxy
 #
@@ -73,6 +97,10 @@ install_basic_commands () {
     # id : coreutils (which is already installed)
     # vim, tree (for convenience)
     apt-get -y install members libc-bin coreutils vim tree initramfs-tools
+
+    echo "kexec-tools kexec-tools/load_kexec  boolean true" | debconf-set-selections
+    # echo "mysql-server-5.5 mysql-server/root_password password ${MYSQL_PASSWORD}" | debconf-set-selections
+    apt-get -y install kexec-tools
     # apt-get -y -t sid install systemd
     echo "done"
 }
@@ -104,6 +132,7 @@ prepare_layout() {
     highlight "make mininas folder"
     mkdir -p /etc/mininas
     mkdir -p /etc/mininas/templates
+    mkdir -p /etc/mininas/sysupgrade
     # template files are deployed by individual functions
     echo "done"
 
@@ -112,9 +141,29 @@ prepare_layout() {
     echo "done"
 
     highlight "make data/configs folder"
+    mkdir -p /etc/mininas/data/root
+    mkdir -p /etc/mininas/data/root/etc
+    mkdir -p /etc/mininas/data/root/var/lib
     mkdir -p /etc/mininas/data/configs
     mkdir -p /etc/mininas/data/qqiot
     echo "done"
+}
+
+
+#
+# sadly, these files can not be symlinked
+#
+link_account_files () {
+
+    #
+    # this must be done after layout prepared
+    #    
+    # link_etc_file passwd
+    # link_etc_file shadow
+    # link_etc_file group
+    # link_etc_file gshadow
+
+    :
 }
 
 #
@@ -186,6 +235,13 @@ install_samba () {
     # overlay_file "/etc/mininas/templates/samba/global"
     # overlay_file "/etc/mininas/templates/samba/share"
 
+    highlight "link samba etc folder"
+    link_etc_file samba
+    echo "done"
+
+    highlight "link samba varlib folder"
+    link_varlib_file samba
+
     cp -r /overlay/etc/mininas/templates/samba /etc/mininas/templates
     echo "done"
 }
@@ -196,6 +252,12 @@ install_network () {
 
     highlight "put conf, json, and template files"
     overlay_file "/etc/network/interfaces"
+
+    # link only interfaces file
+    mkdir -p $DATAROOT/etc/network
+    mv /etc/network/interfaces $DATAROOT/etc/network
+    ln -s $DATAROOT/etc/network/interfaces /etc/network/interfaces
+
     overlay_file "/etc/mininas/data/configs/network.json"
     overlay_file "/etc/mininas/data/configs/network.json.default"
 
@@ -261,6 +323,35 @@ install_ssh () {
     echo "done"
 
     overlay_file "/etc/ssh/sshd_config"
+    echo "done"
+
+    highlight "link ssh etc folder"
+    link_etc_file ssh
+    echo "done"
+}
+
+#
+#
+#
+install_sysupgrade_downloader () {
+
+    banner "installing sysupgrade downloader"
+
+    highlight "install sysupgrade overlay file"
+    overlay_file /etc/mininas/sysupgrade/curr_version
+    overlay_file /etc/mininas/sysupgrade/next_version
+    overlay_file /etc/mininas/sysupgrade/status
+    echo "done"
+
+    highlight "install sysupgrade_downloader"
+    install_service sysupgrade_downloader
+    # static service, no enable
+    # enable_service sysupgrade_downloader
+    echo "done"
+
+    highlight "install sysupgrade_downloader timer"
+    overlay_file /lib/systemd/system/sysupgrade_downloader.timer
+    systemctl enable sysupgrade_downloader.timer
     echo "done"
 }
 
@@ -339,9 +430,12 @@ install_mysql () {
 
     highlight "move mysql database location and update my.cnf"
     # move folder
-    mv /var/lib/mysql /etc/mininas/data
+    # mv /var/lib/mysql /etc/mininas/data
+    # change to varlib link
+    link_varlib_file mysql
     # this is important!
-    chown mysql:mysql /etc/mininas/data/mysql
+    chown mysql:mysql $DATAROOT/var/lib/mysql
+    chmod 700 $DATAROOT/var/lib/mysql
 
     overlay_file /etc/mysql/my.cnf
     echo "done"
@@ -359,6 +453,8 @@ install_proftpd () {
 
     highlight "overlay conf, json, and template files"
     overlay_file "/etc/proftpd/proftpd.conf"
+    link_etc_file proftpd
+
     overlay_file "/etc/mininas/data/configs/proftpd.json"
     mkdir -p "/etc/mininas/templates/proftpd"
     overlay_file "/etc/mininas/templates/proftpd/default"
@@ -519,6 +615,8 @@ install_dlna () {
 
     highlight "install conf, json, and template files"
     overlay_file "/etc/minidlna.conf"
+    link_etc_file minidlna.conf
+
     overlay_file "/etc/mininas/data/configs/minidlna.json"
 
     mkdir -p "/etc/mininas/templates/minidlna"
@@ -600,7 +698,7 @@ install_kernel() {
 
     highlight "create boot links and cmdline"
     ln -s vmlinuz-4.3.3.001\+ /boot/bzImage;
-    ln -s initrd.img-4.3.3.001\+ /boot/ramdik;
+    ln -s initrd.img-4.3.3.001\+ /boot/ramdisk;
     echo "console=tty0 console=ttyS0,115200 root=/dev/mmcblk0p1 rootwait" > /boot/cmdline
     echo "done"
 }
@@ -644,14 +742,6 @@ enable_systemd_network()
     echo "done"
 }
 
-disable_exim4
-{
-    banner "disable systemd exim4"
-
-    highlight "disable networking exim4"
-    systemctl status exim4.service
-    echo "done"
-}
 
 do_cleanup() {
 
@@ -663,6 +753,10 @@ do_cleanup() {
 
     highlight "clean udev eth rules"
     rm -rf /etc/udev/rules.d/70-persistent-net.rules
+    echo "done"
+
+    highlight "remove exim4"
+    apt-get -y --purge remove exim4 exim4-base exim4-config exim4-daemon-light
     echo "done"
 
     highlight "clean apt proxy"
