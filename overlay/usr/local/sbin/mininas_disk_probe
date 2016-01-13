@@ -87,7 +87,8 @@ for i in $(seq 1 $ATA_COUNT); do
         # TODO: quick fix for version (disk information version)
         #
         echo "$DIVERSION" > $DISK_IDENTITY_PATH/di_version
- 
+
+        unset ARRAY
     fi
 
 done
