@@ -1,5 +1,13 @@
 #!/bin/bash
 
+STATUS=$( cat /etc/mininas/sysupgrade/status )
+
+if [ "$STATUS" = "ready" ]; then
+    :
+else
+    exit 1
+fi
+
 if [ ! -e /mininas/boot/bzImage ]; then
 
     # clean status
