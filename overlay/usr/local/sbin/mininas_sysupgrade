@@ -5,14 +5,16 @@ STATUS=$( cat /etc/mininas/sysupgrade/status )
 if [ "$STATUS" = "ready" ]; then
     :
 else
+    echo "status not ready"
     exit 1
 fi
 
 if [ ! -e /mininas/boot/bzImage ]; then
 
+    echo "bzImage not found"
     # clean status
     echo "none" > /etc/mininas/sysupgrade/status
-    exit 1
+    exit 2
 fi
 
 # save ip addr
