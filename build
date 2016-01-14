@@ -2,7 +2,7 @@
 
 # set -e
 
-MININAS_APP_VER=1363
+MININAS_APP_VER=1364
 
 if [ ! -e "scripts/env_setup" ]; then
     echo "please run this script in winsun folder"
