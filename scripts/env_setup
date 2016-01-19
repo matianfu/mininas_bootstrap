@@ -28,10 +28,10 @@ if [ "$(cat /etc/debian_version | grep -e ^8)" = "" ]; then
     return 1
 fi
 
-if [ ! -f scripts/env_setup ]; then
-    echo "this script can only be run in [kernel]/winsun folder"
-    return 1
-fi
+#if [ ! -f scripts/env_setup ]; then
+#    echo "this script can only be run in [kernel]/winsun folder"
+#    return 1
+#fi
 
 BARCELONA_ROOT=$(pwd)
 echo "BARCELONA_ROOT is set to $BARCELONA_ROOT"
@@ -286,7 +286,7 @@ fetch_file_cache () {
     {
         cd ${BARCELONA_ROOT}
         # echo "md5sum -c artifacts/${1}.md5"
-        md5sum -c artifacts/${1}.md5
+        ### md5sum -c artifacts/${1}.md5
         cd -
     } &> /dev/null
     printf "OK\n"
